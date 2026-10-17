@@ -195,7 +195,7 @@ nav button.on{color:var(--pink);font-weight:700}
 <script>
 /* ===== EDIT THESE / عدّلي هذه القيم ===== */
 const WHATSAPP = "962793750075";
-const SPOTS = 15;
+let SPOTS = 15;
 const SPOT_OVERRIDE = { "Spinning": 13 };   // حصص إلها عدد أماكن مختلف
 const spotsFor = n => SPOT_OVERRIDE[n] || SPOTS;
 /* إيميلات الإشعارات (عن طريق FormSubmit). أول إرسال لازم تفعّلي الإيميل من الرسالة اللي بتوصلك */
@@ -326,6 +326,33 @@ function nextDate(day,time){
 const pad=n=>String(n).padStart(2,"0");
 const dkey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const keyOf=(day,c)=>`${dkey(nextDate(day,c[1]))}|${c[1]}|${c[0]}`;
+/* ----- إعدادات من لوحة الأدمن (الجدول، التمارين، التحدي اليومي) ----- */
+function applyConfig(c){
+  if(!c)return;
+  try{
+    if(c.schedule){Object.keys(SCHEDULE).forEach(k=>delete SCHEDULE[k]);Object.keys(c.schedule).forEach(k=>{SCHEDULE[k]=c.schedule[k]})}
+    if(Array.isArray(c.plan)&&c.plan.length)PLAN.splice(0,PLAN.length,...c.plan);
+    if(c.spots){
+      const n=parseInt(c.spots.def,10);if(n>0)SPOTS=n;
+      Object.keys(SPOT_OVERRIDE).forEach(k=>delete SPOT_OVERRIDE[k]);
+      Object.keys(c.spots.by||{}).forEach(k=>{const v=parseInt(c.spots.by[k],10);if(v>0)SPOT_OVERRIDE[k]=v});
+    }
+    if(c.ch&&c.ch.ar&&c.ch.en&&c.ch.ar.length===7&&c.ch.en.length===7){T.ar.ch=c.ch.ar;T.en.ch=c.ch.en}
+  }catch(e){}
+}
+try{applyConfig(JSON.parse(localStorage.getItem("xfit_cfg")))}catch(e){}
+async function loadConfig(){
+  try{
+    const r=await api({action:"config"});
+    if(r&&r.ok&&r.config){
+      try{localStorage.setItem("xfit_cfg",JSON.stringify(r.config))}catch(e){}
+      applyConfig(r.config);
+      if(!SCHEDULE[cur])cur=Object.keys(SCHEDULE)[0];
+      renderDays();renderClasses();renderPlan();rvAvatars();rvPanel();renderHome();
+    }
+  }catch(e){}
+}
+
 let counts={}, cancelled={}, cur=Object.keys(SCHEDULE)[0], pending=null;
 
 /* بيبعت إشعار بالإيميل (بدون ما يعطّل التطبيق إذا فشل) */
@@ -498,7 +525,7 @@ $("#chBtn").onclick=()=>{try{localStorage.setItem(chKey(),chIsDone()?"0":"1")}ca
 function renderHome(){renderToday();renderChallenge();qi++;showQuote()}
 clearInterval(qTimer);qTimer=setInterval(()=>{qi++;showQuote()},5000);
 
-applyStatic();renderDays();renderClasses();renderPlan();rvAvatars();rvPanel();renderHome();loadCounts();
+applyStatic();renderDays();renderClasses();renderPlan();rvAvatars();rvPanel();renderHome();loadCounts();loadConfig();
 
 /* ----- PWA: offline support ----- */
 if("serviceWorker" in navigator&&location.protocol!=="file:"){
