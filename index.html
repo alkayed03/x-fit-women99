@@ -193,6 +193,8 @@ nav button.on{color:var(--pink);font-weight:700}
 /* ===== EDIT THESE / عدّلي هذه القيم ===== */
 const WHATSAPP = "962793750075";
 const SPOTS = 15;
+const SPOT_OVERRIDE = { "Spinning": 13 };   // حصص إلها عدد أماكن مختلف
+const spotsFor = n => SPOT_OVERRIDE[n] || SPOTS;
 /* إيميلات الإشعارات (عن طريق FormSubmit). أول إرسال لازم تفعّلي الإيميل من الرسالة اللي بتوصلك */
 const NOTIFY_EMAIL = "mohammadotoom980@gmail.com";
 const NOTIFY_CC = "nousaibadajaa73@gmail.com";
@@ -362,7 +364,7 @@ function renderClasses(){
   const list=SCHEDULE[cur];
   if(!list.length){$("#classes").innerHTML=`<div class="empty">${t("empty")}</div>`;return}
   $("#classes").innerHTML=list.map((c,i)=>{
-    const [n,tm,m,co]=c,k=keyOf(cur,c),left=Math.max(0,SPOTS-(counts[k]||0));
+    const [n,tm,m,co]=c,k=keyOf(cur,c),left=Math.max(0,spotsFor(n)-(counts[k]||0));
     const when=nextDate(cur,tm).toLocaleDateString(t("dateLoc"),{weekday:"long",day:"numeric",month:"long"});
     return `<div class="cls"><div class="top"><span class="name">${n}</span><span class="badge">${left?t("left").replace("{n}",left):t("fullB")}</span></div>
     <div class="meta"><bdi>🕒 ${tm}</bdi> &nbsp;•&nbsp; <bdi>👩‍🏫 ${co}</bdi> &nbsp;•&nbsp; <bdi>⏱ ${dur(m)}</bdi><br><bdi>📆 ${when}</bdi></div>
