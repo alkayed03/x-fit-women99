@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Xfit Gym · الأدمن</title>
+<style>
+:root{--pink:#e0457b;--pink-l:#fde8f0;--line:#f1d3df;--mute:#777;--bg:#fff8fb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;color:#222}
+.wrap{max-width:520px;margin:0 auto;padding:16px}
+h1{color:var(--pink);font-size:22px;margin:8px 0 16px}
+h2{font-size:17px;margin:0 0 10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
+label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
+input,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;font:inherit;background:#fff}
+button{font:inherit;font-weight:700;border:none;border-radius:12px;padding:11px 16px;cursor:pointer;background:var(--pink);color:#fff}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.ghost{background:transparent;color:var(--pink);border:1px solid var(--pink)}
+button.danger{background:#d33;width:100%;margin-top:14px}
+.tabs{display:flex;gap:8px;margin-bottom:8px}
+.tabs button{flex:1;background:#fff;color:var(--pink);border:1px solid var(--pink)}
+.tabs button.on{background:var(--pink);color:#fff}
+.preview{margin-top:10px;background:var(--pink-l);border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.8}
+.msg{margin:10px 0 0;font-size:14px}
+.msg.err{color:#d33}.msg.ok{color:#1a9d4a}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:none}
+.item .t{font-weight:700}
+.item .s{color:var(--mute);font-size:13px}
+.res{margin-top:12px;font-size:14px;line-height:1.8}
+.res .c{background:var(--pink-l);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.res a{color:var(--pink);font-weight:700;text-decoration:none}
+.empty{color:var(--mute);font-size:14px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>لوحة الأدمن · Xfit Gym</h1>
+
+  <section id="login" class="card">
+    <label for="pw">كلمة السر</label>
+    <input type="password" id="pw" autocomplete="current-password">
+    <p id="loginMsg" class="msg"></p>
+    <button id="loginBtn" style="width:100%;margin-top:10px">دخول</button>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="card">
+      <h2>إلغاء حصص</h2>
+
+      <label for="date">التاريخ</label>
+      <input type="date" id="date">
+
+      <label>شو بدك تلغي؟</label>
+      <div class="tabs">
+        <button id="mCoach" class="on" type="button">كل حصص كوتش</button>
+        <button id="mClass" type="button">حصة وحدة</button>
+      </div>
+      <select id="coachSel"></select>
+      <select id="classSel" hidden></select>
+
+      <div id="preview" class="preview"></div>
+
+      <label for="note">ملاحظة تظهر للمشتركات (اختياري)</label>
+      <input id="note" maxlength="120" placeholder="مثلاً: الكوتش غايبة">
+
+      <button id="cancelBtn" class="danger" type="button">إلغاء الحصص</button>
+      <p id="msg" class="msg"></p>
+      <div id="result" class="res"></div>
+    </div>
+
+    <div class="card">
+      <h2>الإلغاءات القادمة</h2>
+      <div id="list"></div>
+    </div>
+
+    <button id="logout" class="ghost" type="button" style="width:100%">تسجيل خروج</button>
+  </section>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbw-CU9BPCb0h5ppU46K8qo9AxjSPgMyTE0iCF0gCzbX3KbtZCDkmwIGcSMeF8OXP2rP/exec";
+const DAYS = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const $ = s => document.querySelector(s);
+let pw = "", info = null, mode = "coach";
+
+const ERR = {
+  denied: "كلمة السر غلط",
+  busy: "محاولات كثيرة، جرّبي بعد 10 دقايق",
+  setup: "لازم تحطي كلمة سر داخل السكربت (ADMIN_PASSWORD) وتنشري نسخة جديدة",
+  "bad date": "التاريخ غير صحيح (لازم يكون اليوم أو بعده)",
+  none: "ما في حصص مطابقة",
+  "bad request": "الطلب غير صحيح"
+};
+const errText = e => ERR[e] || "صار خطأ، جرّبي مرة ثانية";
+
+async function api(params) {
+  const r = await fetch(API_URL + "?" + new URLSearchParams(Object.assign({ pw }, params)));
+  return r.json();
+}
+function el(tag, text, cls) {
+  const e = document.createElement(tag);
+  if (text != null) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+}
+function dayOf(date) {
+  const d = new Date(date + "T12:00:00");
+  return isNaN(d) ? null : DAYS[d.getDay()];
+}
+function setMsg(node, text, kind) { node.textContent = text || ""; node.className = "msg" + (kind ? " " + kind : ""); }
+
+/* ---------- login ---------- */
+async function login(silent) {
+  const m = $("#loginMsg");
+  if (!silent) setMsg(m, "...");
+  $("#loginBtn").disabled = true;
+  try {
+    const r = await api({ action: "adminInfo" });
+    if (!r.ok) { sessionStorage.removeItem("xfit_pw"); if (!silent) setMsg(m, errText(r.error), "err"); return; }
+    info = r;
+    try { sessionStorage.setItem("xfit_pw", pw); } catch (e) {}
+    $("#login").hidden = true; $("#panel").hidden = false;
+    fillForm(); renderList();
+  } catch (e) {
+    if (!silent) setMsg(m, "ما في اتصال، جرّبي مرة ثانية", "err");
+  } finally { $("#loginBtn").disabled = false; }
+}
+$("#loginBtn").onclick = () => { pw = $("#pw").value; if (pw) login(false); };
+$("#pw").addEventListener("keydown", e => { if (e.key === "Enter") $("#loginBtn").click(); });
+$("#logout").onclick = () => { try { sessionStorage.removeItem("xfit_pw"); } catch (e) {} location.reload(); };
+
+/* ---------- form ---------- */
+function fillForm() {
+  const classes = [];
+  Object.keys(info.schedule).forEach(d => info.schedule[d].forEach(c => { if (classes.indexOf(c[0]) < 0) classes.push(c[0]); }));
+  $("#coachSel").replaceChildren(...info.coaches.map(c => { const o = el("option", c); o.value = c; return o; }));
+  $("#classSel").replaceChildren(...classes.map(c => { const o = el("option", c); o.value = c; return o; }));
+  const d = $("#date"); d.min = info.today; d.value = info.today;
+  renderPreview();
+}
+function targets() {
+  const day = dayOf($("#date").value);
+  const list = (day && info.schedule[day]) || [];
+  const v = mode === "coach" ? $("#coachSel").value : $("#classSel").value;
+  return { day, list: list.filter(c => mode === "coach" ? c[2] === v : c[0] === v) };
+}
+function renderPreview() {
+  const { day, list } = targets(), p = $("#preview");
+  if (!day) { p.textContent = "اختاري تاريخ"; return; }
+  p.replaceChildren();
+  p.appendChild(el("b", day + ":"));
+  if (!list.length) { p.appendChild(el("div", "ما في حصص مطابقة بهذا اليوم")); $("#cancelBtn").disabled = true; return; }
+  $("#cancelBtn").disabled = false;
+  list.forEach(c => p.appendChild(el("div", "• " + c[0] + " — " + c[1] + " (" + c[2] + ")")));
+}
+function setMode(m) {
+  mode = m;
+  $("#mCoach").classList.toggle("on", m === "coach");
+  $("#mClass").classList.toggle("on", m === "class");
+  $("#coachSel").hidden = m !== "coach";
+  $("#classSel").hidden = m !== "class";
+  renderPreview();
+}
+$("#mCoach").onclick = () => setMode("coach");
+$("#mClass").onclick = () => setMode("class");
+["#date", "#coachSel", "#classSel"].forEach(s => $(s).addEventListener("change", renderPreview));
+
+/* ---------- cancel ---------- */
+$("#cancelBtn").onclick = async () => {
+  const { day, list } = targets();
+  if (!day || !list.length) return;
+  const names = list.map(c => c[0] + " " + c[1]).join("، ");
+  if (!confirm("متأكدة بدك تلغي (" + day + " " + $("#date").value + "): " + names + "؟")) return;
+
+  const msg = $("#msg"), res = $("#result");
+  setMsg(msg, "...", ""); res.replaceChildren(); $("#cancelBtn").disabled = true;
+  try {
+    const params = { action: "adminCancel", date: $("#date").value, note: $("#note").value.trim() };
+    if (mode === "coach") params.coach = $("#coachSel").value; else params.cls = $("#classSel").value;
+    const r = await api(params);
+    if (!r.ok) { setMsg(msg, errText(r.error), "err"); return; }
+    setMsg(msg, "✅ تم إلغاء الحصص", "ok");
+    r.cancelled.forEach(c => {
+      const box = el("div", null, "c");
+      box.appendChild(el("b", c.cls + " — " + c.time));
+      if (!c.bookings.length) box.appendChild(el("div", "ما كان في حجوزات"));
+      else {
+        box.appendChild(el("div", "فيها " + c.bookings.length + " حجز، تواصلي معهم:"));
+        c.bookings.forEach(b => {
+          const row = el("div", b.name + " — ");
+          const a = el("a", b.phone); a.href = "tel:" + b.phone;
+          row.appendChild(a); box.appendChild(row);
+        });
+      }
+      res.appendChild(box);
+    });
+    $("#note").value = "";
+    const i = await api({ action: "adminInfo" });
+    if (i.ok) { info = i; renderList(); }
+  } catch (e) {
+    setMsg(msg, "ما في اتصال، جرّبي مرة ثانية", "err");
+  } finally { renderPreview(); }
+};
+
+/* ---------- upcoming list ---------- */
+function renderList() {
+  const box = $("#list");
+  if (!info.cancellations.length) { box.replaceChildren(el("div", "ما في إلغاءات قادمة", "empty")); return; }
+  box.replaceChildren(...info.cancellations.map(x => {
+    const row = el("div", null, "item"), left = el("div");
+    left.appendChild(el("div", x.cls, "t"));
+    left.appendChild(el("div", (x.day || "") + " " + x.date + (x.note ? " — " + x.note : ""), "s"));
+    const b = el("button", "إرجاع", "ghost");
+    b.onclick = async () => {
+      if (!confirm("إرجاع حصة " + x.cls + " بتاريخ " + x.date + "؟")) return;
+      b.disabled = true;
+      try {
+        const r = await api({ action: "adminRestore", date: x.date, cls: x.cls });
+        if (!r.ok) { alert(errText(r.error)); b.disabled = false; return; }
+        const i = await api({ action: "adminInfo" });
+        if (i.ok) { info = i; renderList(); }
+      } catch (e) { alert("ما في اتصال، جرّبي مرة ثانية"); b.disabled = false; }
+    };
+    row.append(left, b);
+    return row;
+  }));
+}
+
+/* ---------- auto login within the same browser session ---------- */
+try { const s = sessionStorage.getItem("xfit_pw"); if (s) { pw = s; login(true); } } catch (e) {}
+</script>
+</body>
+</html>
