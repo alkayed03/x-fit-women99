@@ -124,8 +124,9 @@ async function load() {
     members = us.docs.map(d => ({ uid: d.id, u: d.data(), m: mm[d.id] || null }))
       .sort((a, b) => String(a.u.name || "").localeCompare(String(b.u.name || ""), "ar"));
     render();
+    $("#count").textContent += " | " + (auth.currentUser && auth.currentUser.email) + " | users:" + us.size + " memberships:" + ms.size;
   } catch (e) {
-    $("#count").textContent = "";
+    $("#count").textContent = (auth.currentUser && auth.currentUser.email) + " | " + (e.code || e.message);
     const p = document.createElement("p"); p.className = "msg err";
     p.textContent = "ما قدرت أحمّل البيانات. تأكدي إنك داخلة بإيميل الأدمن وإنه قواعد Firestore منشورة.";
     list.appendChild(p);
