@@ -537,9 +537,30 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
 </script>
 <script type="module">
 /* ربط الحجز بحساب المشتركة (إذا كانت مسجلة دخول). إذا فشل أي شي، الحجز العادي ما بتأثر */
-import { auth, db, onAuthStateChanged, doc, setDoc, serverTimestamp } from "./xfit-firebase.js";
+import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, serverTimestamp } from "./xfit-firebase.js";
 let user = null;
-onAuthStateChanged(auth, u => { user = u; });
+let myMem = null;
+function mkCard(title, text) {
+  const c = document.createElement("div"); c.className = "cls priv";
+  const h = document.createElement("div"); h.className = "meta"; h.style.fontWeight = "800"; h.textContent = title;
+  const p = document.createElement("div"); p.className = "meta"; p.style.whiteSpace = "pre-wrap"; p.style.lineHeight = "1.9"; p.textContent = text;
+  c.append(h, p); return c;
+}
+function renderPrivate() {
+  document.querySelectorAll(".priv").forEach(n => n.remove());
+  const plan = document.querySelector("#plan"), nut = document.querySelector("#nutrition .cls:not(.priv)");
+  if (plan) plan.style.display = ""; if (nut) nut.style.display = "";
+  const m = myMem; if (!m || m.type !== "private") return;
+  const ar = document.documentElement.lang === "ar";
+  if (m.schedule && plan) { plan.style.display = "none"; plan.before(mkCard(ar ? "برنامجك الخاص 💎" : "Your private plan 💎", m.schedule)); }
+  if (m.nutrition && nut) { nut.style.display = "none"; nut.before(mkCard(ar ? "خطتك الغذائية 💎" : "Your nutrition plan 💎", m.nutrition)); }
+}
+new MutationObserver(renderPrivate).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+onAuthStateChanged(auth, async u => {
+  user = u; myMem = null; renderPrivate();
+  if (!u) return;
+  try { const s = await getDoc(doc(db, "memberships", u.uid)); myMem = s.exists() ? s.data() : null; renderPrivate(); } catch (e) {}
+});
 window.xfitOnBooked = async b => {
   if (!user) return;
   try {
