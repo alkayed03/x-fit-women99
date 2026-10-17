@@ -193,6 +193,9 @@ nav button.on{color:var(--pink);font-weight:700}
 /* ===== EDIT THESE / عدّلي هذه القيم ===== */
 const WHATSAPP = "962793750075";
 const SPOTS = 10;
+/* إيميلات الإشعارات (عن طريق FormSubmit). أول إرسال لازم تفعّلي الإيميل من الرسالة اللي بتوصلك */
+const NOTIFY_EMAIL = "mohammadotoom980@gmail.com";
+const NOTIFY_CC = "nousaibadajaa73@gmail.com";
 const API_URL = "https://script.google.com/macros/s/AKfycbycPcKKZSM6KfQPj1eOiCl4nVuCoBpHwMkDdgMU_5Ph17MkODJQKTO_Tyw2aB6UGRk-/exec";
 /* Days keep their Arabic names internally (used for booking). [class, time, minutes, coach] */
 const SCHEDULE = {
@@ -320,6 +323,16 @@ const dkey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const keyOf=(day,c)=>`${dkey(nextDate(day,c[1]))}|${c[1]}|${c[0]}`;
 let counts={}, cur=Object.keys(SCHEDULE)[0], pending=null;
 
+/* بيبعت إشعار بالإيميل (بدون ما يعطّل التطبيق إذا فشل) */
+function notify(subject,fields){
+  try{
+    fetch("https://formsubmit.co/ajax/"+encodeURIComponent(NOTIFY_EMAIL),{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify(Object.assign({_subject:subject,_template:"table",_captcha:"false",_cc:NOTIFY_CC},fields))
+    }).catch(()=>{});
+  }catch(e){}
+}
 async function api(params){
   const r=await fetch(API_URL+"?"+new URLSearchParams(params));
   return r.json();
@@ -372,7 +385,8 @@ $("#mSend").onclick=async()=>{
   m.style.color="var(--mute)";m.textContent=t("booking");$("#mSend").disabled=true;
   try{
     const r=await api({action:"book",key:pending.key,cls:pending.c[0],day:pending.day,time:pending.c[1],name,phone,spots:SPOTS});
-    if(r.ok){m.style.color="#1a9d4a";m.textContent=t("ok");$("#mSend").style.display="none";loadCounts()}
+    if(r.ok){m.style.color="#1a9d4a";m.textContent=t("ok");$("#mSend").style.display="none";loadCounts();
+      notify("حجز جديد - "+pending.c[0],{"الحصة":pending.c[0],"اليوم":pending.day+" "+pending.c[1],"الاسم":name,"الرقم":phone})}
     else{m.style.color="#d33";m.textContent=serverErr(r.error)}
   }catch(e){m.style.color="#d33";m.textContent=t("noConn")}
   $("#mSend").disabled=false;
@@ -439,7 +453,9 @@ document.addEventListener("click",async e=>{
     m.style.color="var(--mute)";m.textContent=t("rvSending");btn.disabled=true;
     try{
       const r=await api({action:"rate",coach:coachNames()[i],stars:rv.stars[i],comment,name:(rv.nm[i]||"").trim()});
-      if(r.ok){rv.done[i]=true;rvAvatars();rvPanel();return}
+      if(r.ok){
+        notify("تقييم جديد - "+coachNames()[i]+" ("+rv.stars[i]+"/5)",{"الكوتش":coachNames()[i],"التقييم":rv.stars[i]+" من 5","التعليق":comment||"-","الاسم":(rv.nm[i]||"").trim()||"بدون اسم"});
+        rv.done[i]=true;rvAvatars();rvPanel();return}
       m.style.color="#d33";m.textContent=serverErr(r.error);
     }catch(err){m.style.color="#d33";m.textContent=t("noConn")}
     btn.disabled=false;
