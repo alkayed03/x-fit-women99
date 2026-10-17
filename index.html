@@ -113,6 +113,7 @@ nav button.on{color:var(--pink);font-weight:700}
 <body>
 <header class="top">
   <div class="logo-t">XFIT GYM</div>
+  <a id="accLink" href="account.html" style="margin-inline-start:auto;margin-inline-end:8px;text-decoration:none;font-size:20px" aria-label="حسابي">👤</a>
   <button id="langBtn" type="button"></button>
 </header>
 
@@ -424,7 +425,7 @@ $("#mSend").onclick=async()=>{
   m.style.color="var(--mute)";m.textContent=t("booking");$("#mSend").disabled=true;
   try{
     const r=await api({action:"book",key:pending.key,cls:pending.c[0],day:pending.day,time:pending.c[1],name,phone,spots:SPOTS});
-    if(r.ok){m.style.color="#1a9d4a";m.textContent=t("ok");$("#mSend").style.display="none";loadCounts();
+    if(r.ok){try{window.xfitOnBooked&&window.xfitOnBooked({key:pending.key,cls:pending.c[0],day:pending.day,time:pending.c[1]})}catch(e){}m.style.color="#1a9d4a";m.textContent=t("ok");$("#mSend").style.display="none";loadCounts();
       notify("حجز جديد - "+pending.c[0],{"الحصة":pending.c[0],"اليوم":pending.day+" "+pending.c[1],"الاسم":name,"الرقم":phone})}
     else{m.style.color="#d33";m.textContent=serverErr(r.error)}
   }catch(e){m.style.color="#d33";m.textContent=t("noConn")}
@@ -533,6 +534,19 @@ applyStatic();renderDays();renderClasses();renderPlan();rvAvatars();rvPanel();re
 if("serviceWorker" in navigator&&location.protocol!=="file:"){
   addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
 }
+</script>
+<script type="module">
+/* ربط الحجز بحساب المشتركة (إذا كانت مسجلة دخول). إذا فشل أي شي، الحجز العادي ما بتأثر */
+import { auth, db, onAuthStateChanged, doc, setDoc, serverTimestamp } from "./xfit-firebase.js";
+let user = null;
+onAuthStateChanged(auth, u => { user = u; });
+window.xfitOnBooked = async b => {
+  if (!user) return;
+  try {
+    await setDoc(doc(db, "users", user.uid, "bookings", b.key.replace(/[\/|]/g, "_")),
+      { key: b.key, cls: b.cls, day: b.day, time: b.time, date: b.key.split("|")[0], createdAt: serverTimestamp() });
+  } catch (e) {}
+};
 </script>
 </body>
 </html>

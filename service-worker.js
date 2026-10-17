@@ -2,7 +2,7 @@
    - App files: cache-first with background refresh (opens instantly, even offline)
    - Google Apps Script API (bookings, counts, ratings): always network, never cached
    Bump CACHE_VERSION whenever you change index.html so users get the update. */
-const CACHE_VERSION = "xfit-v11";
+const CACHE_VERSION = "xfit-v12";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -34,8 +34,9 @@ self.addEventListener("fetch", e => {
   /* Never touch the booking/rating API or other cross-origin requests */
   if (url.origin !== self.location.origin) return;
 
-  /* Admin page and other pages: never cached by this worker */
-  if (/admin\.html$/.test(url.pathname)) return;
+  /* Only the booking page (index) is cached; account/admin pages always go to the network */
+  const isIndex = /\/(index\.html)?$/.test(url.pathname);
+  if (req.mode === "navigate" && !isIndex) return;
 
   /* Pages: network first (fresh when online), fall back to cache when offline */
   if (req.mode === "navigate") {
