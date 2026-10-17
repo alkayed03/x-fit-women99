@@ -1,546 +1,538 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<title>Xfit Gym · الأدمن</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xfit Gym</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e0457b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Xfit Gym">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
-:root{--pink:#e0457b;--pink-l:#fde8f0;--line:#f1d3df;--mute:#777;--bg:#fff8fb}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;color:#222}
-.wrap{max-width:560px;margin:0 auto;padding:16px}
-h1{color:var(--pink);font-size:22px;margin:8px 0 16px}
-h2{font-size:17px;margin:0 0 10px}
-h3{font-size:15px;margin:14px 0 6px}
-.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
-label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
-input,select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:12px;font:inherit;background:#fff;min-width:0}
-button{font:inherit;font-weight:700;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;background:var(--pink);color:#fff}
-button:disabled{opacity:.5;cursor:not-allowed}
-button.ghost{background:transparent;color:var(--pink);border:1px solid var(--pink)}
-button.danger{background:#d33}
-button.sm{padding:8px 10px;font-size:13px}
-.full{width:100%;margin-top:12px}
-.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-.tabs button{flex:1;min-width:70px;background:#fff;color:var(--pink);border:1px solid var(--pink);padding:9px 6px;font-size:14px}
-.tabs button.on{background:var(--pink);color:#fff}
-.preview{margin-top:10px;background:var(--pink-l);border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.8}
-.msg{margin:10px 0 0;font-size:14px}
-.msg.err{color:#d33}.msg.ok{color:#1a9d4a}
-.hint{color:var(--mute);font-size:13px;line-height:1.7;margin:6px 0}
-.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
-.item:first-child{border-top:none}
-.item .t{font-weight:700}
-.item .s{color:var(--mute);font-size:13px}
-.res{margin-top:12px;font-size:14px;line-height:1.8}
-.res .c{background:var(--pink-l);border-radius:12px;padding:10px 12px;margin-bottom:8px}
-.res a{color:var(--pink);font-weight:700;text-decoration:none}
-.empty{color:var(--mute);font-size:14px}
-.row{border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px;background:#fffdfe}
-.row .l2{display:grid;grid-template-columns:1fr 70px 1.2fr auto;gap:6px;margin-top:6px}
-.row .l1{display:flex;gap:6px}
-.crow{display:flex;gap:6px;align-items:center;margin-bottom:8px}
-.crow span{font-size:12px;color:var(--mute);white-space:nowrap}
-.xrow{display:grid;grid-template-columns:1fr 90px auto;gap:6px;margin-bottom:6px}
-.chrow{margin-bottom:10px}
-.chrow b{font-size:13px}
-.chrow input{margin-top:4px}
-.plan{border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:12px}
-[hidden]{display:none!important}
+:root{--pink:#e0457b;--pink-d:#c23266;--pink-l:#fde8f0;--bg:#fff;--card:#fff;--text:#2b2b33;--mute:#8b8b99;--line:#f1d9e3}
+@media (prefers-color-scheme:dark){:root{--bg:#17131a;--card:#221b27;--text:#f4eef6;--mute:#a79fb0;--line:#3a2c42;--pink-l:#3a2030}}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:150px}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 6px}
+.logo-t{font-size:24px;font-weight:900;letter-spacing:1.5px;background:linear-gradient(135deg,var(--pink),#8a3fc2);-webkit-background-clip:text;background-clip:text;color:transparent}
+#langBtn{background:var(--pink-l);color:var(--pink);border:none;border-radius:20px;padding:7px 15px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.view{display:none;padding:18px}.view.on{display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tile{background:var(--card);border:1px solid var(--line);box-shadow:0 6px 18px rgba(224,69,123,.10);border-radius:22px;padding:18px 10px;text-align:center;color:var(--text);font:inherit;font-weight:800;cursor:pointer}
+.tile .ic{display:flex;align-items:center;justify-content:center;width:56px;height:56px;margin:0 auto 10px;border-radius:18px;background:linear-gradient(135deg,#ff86b0,#e0457b);font-size:28px;box-shadow:0 6px 14px rgba(224,69,123,.35)}
+.tile.wide{grid-column:1/-1;display:flex;align-items:center;gap:14px;text-align:start;padding:14px 16px}
+.tile.wide .ic{margin:0;flex:0 0 auto}
+.tile.wide small{display:block;font-weight:500;color:var(--mute);font-size:12px;margin-top:2px}
+.hero{position:relative;overflow:hidden;border-radius:28px;padding:26px 20px 22px;color:#fff;background:linear-gradient(135deg,#ff5f9e 0%,#c23266 52%,#6a2c91 100%);box-shadow:0 14px 30px rgba(194,50,102,.35);margin-bottom:18px}
+.hero::before{content:"";position:absolute;width:210px;height:210px;border-radius:50%;background:rgba(255,255,255,.12);top:-70px;inset-inline-end:-60px}
+.hero::after{content:"";position:absolute;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.10);bottom:-50px;inset-inline-start:-30px}
+.hero>*{position:relative;z-index:1}
+.hero .kick{font-size:13px;font-weight:800;letter-spacing:1px;opacity:.9}
+.hero h1{font-size:30px;line-height:1.15;font-weight:900;margin:6px 0 10px}
+.hero .quote{min-height:46px;font-size:15px;opacity:.95;transition:opacity .4s}
+.hero .cta{margin-top:14px;background:#fff;color:var(--pink-d);border:none;border-radius:16px;padding:13px 22px;font:inherit;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.18)}
+.hero .big{position:absolute;font-size:92px;inset-inline-end:14px;bottom:6px;opacity:.95;z-index:1;transform:rotate(-8deg)}
+.sec-t{font-size:15px;font-weight:900;margin:4px 2px 10px}
+.chips{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 12px;margin-bottom:6px}
+.tchip{flex:0 0 auto;min-width:112px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:11px 14px;text-align:center;font:inherit;color:var(--text);cursor:pointer;box-shadow:0 4px 12px rgba(224,69,123,.08)}
+.tchip b{display:block;color:var(--pink);font-size:17px}
+.tchip span{font-size:13px;font-weight:700}
+.nochip{color:var(--mute);font-size:14px;padding:8px 2px 14px}
+.chal{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--pink-l),var(--card));border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:18px}
+.chal .e{font-size:40px}
+.chal .tx{flex:1}
+.chal .tx small{color:var(--pink);font-weight:900;letter-spacing:.5px}
+.chal .tx div{font-weight:800;margin-top:2px}
+.chal button{border:none;border-radius:14px;background:var(--pink);color:#fff;font:inherit;font-weight:800;padding:10px 14px;cursor:pointer}
+.chal.done button{background:#1a9d4a}
+h2{font-size:18px;margin-bottom:12px;color:var(--pink)}
+.days{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:8px}
+.day{flex:0 0 auto;min-width:58px;padding:9px 6px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-align:center}
+.day.on{background:var(--pink);color:#fff;border-color:var(--pink)}
+.cls{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.cls .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px}
+.cls .name{font-weight:800;color:var(--pink);font-size:17px}
+.cls .meta{color:var(--mute);font-size:13px;line-height:1.8}
+.badge{font-size:12px;border-radius:10px;padding:2px 8px;background:var(--pink-l);color:var(--pink);font-weight:700;white-space:nowrap}
+.btn{display:inline-block;background:var(--pink);color:#fff;border:none;border-radius:12px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;margin-top:8px}
+.cls.off{opacity:.75}
+.badge.off{background:#eee;color:#777}
+.btn.off{background:#bbb;cursor:not-allowed}
+.btn.alt{background:transparent;color:var(--pink);border:1px solid var(--pink)}
+.full{background:#bbb!important;pointer-events:none}
+.empty{text-align:center;color:var(--mute);padding:40px 0}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden}
+summary{padding:14px;font-weight:700;cursor:pointer;color:var(--pink);list-style:none}
+summary::-webkit-details-marker{display:none}
+details ul{padding:0 14px 14px;margin-inline-start:18px;line-height:2}
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);border-top:1px solid var(--line);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;background:none;border:none;font:inherit;font-size:11px;color:var(--mute);cursor:pointer}
+nav button .ic{display:block;font-size:22px}
+nav button.on{color:var(--pink);font-weight:700}
+.fab{position:fixed;bottom:84px;left:16px;width:54px;height:54px;border-radius:50%;background:#25d366;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal.on{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom,0px))}
+.sheet h3{color:var(--pink);margin-bottom:4px}
+.sheet input{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;font:inherit;background:var(--card);color:var(--text);margin-top:10px}
+.msg{margin-top:10px;font-size:14px;min-height:20px}
+.rv-sub{color:var(--mute);font-size:14px;margin:-6px 0 14px}
+.rv-avatars{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 12px}
+.rv-av{flex:0 0 auto;background:none;border:none;font:inherit;color:var(--text);text-align:center;cursor:pointer;width:72px}
+.rv-c{position:relative;display:flex;align-items:center;justify-content:center;width:64px;height:64px;margin:0 auto 6px;border-radius:50%;background:var(--pink-l);font-size:28px;border:3px solid transparent;transition:.2s}
+.rv-av.on .rv-c{border-color:var(--pink);transform:scale(1.08);background:linear-gradient(135deg,var(--pink),#ff9ac0)}
+.rv-c i{position:absolute;bottom:-2px;right:-2px;background:#1a9d4a;color:#fff;font-style:normal;font-size:12px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.rv-n{font-size:13px;font-weight:700}
+.rv-card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 16px;text-align:center;position:relative;overflow:hidden}
+.rv-card.new{animation:rvIn .3s ease}
+@keyframes rvIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.rv-hint{text-align:center;color:var(--mute);padding:30px 0}
+.rv-who{font-size:20px;font-weight:800;color:var(--pink)}
+.rv-face{font-size:64px;line-height:1.2;margin-top:6px}
+.rv-label{font-weight:800;min-height:24px}
+.rv-stars{display:flex;justify-content:center;gap:4px;direction:ltr;margin:10px 0 14px}
+.rv-s{background:none;border:none;font-size:44px;line-height:1;color:var(--line);cursor:pointer;padding:0 2px;transition:transform .15s,color .15s}
+.rv-s.on{color:#f5a623;transform:scale(1.12)}
+.rv-s:active{transform:scale(1.4)}
+.rv-tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+.rv-tag{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:20px;padding:8px 13px;font:inherit;font-size:13px;cursor:pointer}
+.rv-tag.on{background:var(--pink);border-color:var(--pink);color:#fff}
+.rv-in{width:100%;padding:12px;border:1px solid var(--line);border-radius:14px;font:inherit;background:var(--bg);color:var(--text);margin-top:8px;resize:none}
+.rv-send{width:100%;margin-top:14px;padding:14px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--pink),var(--pink-d));color:#fff;font:inherit;font-weight:800;font-size:16px;cursor:pointer}
+.rv-send:disabled{opacity:.6}
+.rv-msg{min-height:20px;margin-top:8px;font-size:14px}
+.rv-thanks{font-size:22px;font-weight:800;color:var(--pink);margin:8px 0}
+.rv-conf{position:absolute;top:-20px;font-size:20px;animation:rvFall 2.4s ease-in forwards;pointer-events:none}
+@keyframes rvFall{to{transform:translateY(420px) rotate(360deg);opacity:0}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>لوحة الأدمن · Xfit Gym</h1>
+<header class="top">
+  <div class="logo-t">XFIT GYM</div>
+  <button id="langBtn" type="button"></button>
+</header>
 
-  <section id="login" class="card">
-    <label for="pw">كلمة السر</label>
-    <input type="password" id="pw" autocomplete="current-password">
-    <p id="loginMsg" class="msg"></p>
-    <button id="loginBtn" class="full">دخول</button>
-  </section>
+<section class="view on" id="home">
+  <div class="hero">
+    <div class="kick" data-i="heroKick"></div>
+    <h1 data-i="heroTitle"></h1>
+    <div class="quote" id="quote"></div>
+    <button class="cta" data-go="schedule" data-i="heroCta"></button>
+    <div class="big">💪</div>
+  </div>
 
-  <section id="panel" hidden>
-    <div class="tabs" id="nav">
-      <button data-p="pCancel" class="on" type="button">إلغاء حصص</button>
-      <button data-p="pSched" type="button">الجدول</button>
-      <button data-p="pCoach" type="button">الكوتشات</button>
-      <button data-p="pEx" type="button">التمارين</button>
-    </div>
+  <div class="sec-t" data-i="today"></div>
+  <div class="chips" id="todayChips"></div>
 
-    <!-- ===== إلغاء ===== -->
-    <div id="pCancel">
-      <div class="card">
-        <h2>إلغاء حصص</h2>
-        <label for="date">التاريخ</label>
-        <input type="date" id="date">
-        <label>شو بدك تلغي؟</label>
-        <div class="tabs">
-          <button id="mCoach" class="on" type="button">كل حصص كوتش</button>
-          <button id="mClass" type="button">حصة وحدة</button>
-        </div>
-        <select id="coachSel"></select>
-        <select id="classSel" hidden></select>
-        <div id="preview" class="preview"></div>
-        <label for="note">ملاحظة تظهر للمشتركات (اختياري)</label>
-        <input id="note" maxlength="120" placeholder="مثلاً: الكوتش غايبة">
-        <button id="cancelBtn" class="danger full" type="button">إلغاء الحصص</button>
-        <p id="msg" class="msg"></p>
-        <div id="result" class="res"></div>
-      </div>
-      <div class="card">
-        <h2>الإلغاءات القادمة</h2>
-        <div id="list"></div>
-      </div>
-    </div>
+  <div class="chal" id="chal">
+    <div class="e" id="chE">🔥</div>
+    <div class="tx"><small data-i="chTitle"></small><div id="chText"></div></div>
+    <button id="chBtn"></button>
+  </div>
 
-    <!-- ===== الجدول ===== -->
-    <div id="pSched" hidden>
-      <div class="card">
-        <h2>جدول الحصص</h2>
-        <div class="tabs" id="dayTabs"></div>
-        <div id="classRows"></div>
-        <button id="addClass" class="ghost full" type="button">+ إضافة حصة</button>
-        <p class="hint">تنبيه: إذا غيّرتي اسم أو وقت حصة عليها حجوزات قادمة، الحجوزات القديمة ما رح تنربط بالحصة الجديدة. الأفضل تلغي الحصة أول وتتواصلي مع المحجوزات.</p>
-        <datalist id="clsNames"></datalist>
-        <button class="saveBtn full" type="button">حفظ التغييرات</button>
-        <p class="msg saveMsg"></p>
-      </div>
-      <div class="card">
-        <h2>عدد الأماكن</h2>
-        <label for="spotDef">العدد الافتراضي لكل حصة</label>
-        <input type="number" id="spotDef" min="1" max="100">
-        <h3>حصص بعدد مختلف</h3>
-        <p class="hint">اتركي الخانة فاضية لتاخد العدد الافتراضي. تقليل العدد ما بيلغي حجوزات موجودة، بس بيمنع حجوزات جديدة لحد ما يتوفر مكان.</p>
-        <div id="spotRows"></div>
-        <button class="saveBtn full" type="button">حفظ التغييرات</button>
-        <p class="msg saveMsg"></p>
-      </div>
-    </div>
+  <div class="grid">
+    <button class="tile" data-go="schedule"><span class="ic">📅</span><span data-i="tSchedule"></span></button>
+    <button class="tile" data-go="workout"><span class="ic">🏋️‍♀️</span><span data-i="tWorkout"></span></button>
+    <button class="tile" data-go="nutrition"><span class="ic">🍎</span><span data-i="tNutrition"></span></button>
+    <button class="tile" data-go="inbody"><span class="ic">📊</span>InBody</button>
+    <button class="tile wide" data-go="rate"><span class="ic">⭐</span><span><span data-i="tRate"></span><small data-i="rateSub"></small></span></button>
+  </div>
+</section>
 
-    <!-- ===== الكوتشات ===== -->
-    <div id="pCoach" hidden>
-      <div class="card">
-        <h2>الكوتشات</h2>
-        <p class="hint">تغيير الاسم بينطبق على كل حصصها. التقييمات القديمة بتضل مسجلة بالاسم القديم.</p>
-        <div id="coachRows"></div>
-        <h3>إضافة كوتش</h3>
-        <div class="crow"><input id="newCoach" maxlength="30" placeholder="الاسم"><button id="addCoach" class="sm" type="button">إضافة</button></div>
-        <button class="saveBtn full" type="button">حفظ التغييرات</button>
-        <p class="msg saveMsg"></p>
-      </div>
-    </div>
+<section class="view" id="schedule">
+  <h2 data-i="tSchedule"></h2>
+  <div class="days" id="days"></div>
+  <div id="classes"></div>
+</section>
 
-    <!-- ===== التمارين ===== -->
-    <div id="pEx" hidden>
-      <div class="card">
-        <h2>التحدي اليومي</h2>
-        <p class="hint">بيظهر بالصفحة الرئيسية حسب اليوم.</p>
-        <div id="chRows"></div>
-        <button class="saveBtn full" type="button">حفظ التغييرات</button>
-        <p class="msg saveMsg"></p>
-      </div>
-      <div class="card">
-        <h2>برنامج التمارين</h2>
-        <div id="planRows"></div>
-        <button id="addPlan" class="ghost full" type="button">+ إضافة يوم تمارين</button>
-        <button class="saveBtn full" type="button">حفظ التغييرات</button>
-        <p class="msg saveMsg"></p>
-      </div>
-    </div>
+<section class="view" id="workout">
+  <h2 data-i="tWorkout"></h2>
+  <div id="plan"></div>
+</section>
 
-    <button id="logout" class="ghost full" type="button">تسجيل خروج</button>
-  </section>
-</div>
+<section class="view" id="nutrition">
+  <h2 data-i="tNutrition"></h2>
+  <div class="cls"><div class="meta" data-i="nutText"></div>
+  <a class="btn" id="nutBtn" target="_blank" rel="noopener" data-i="nutBtn"></a></div>
+</section>
+
+<section class="view" id="inbody">
+  <h2 data-i="inbTitle"></h2>
+  <div class="cls"><div class="meta" data-i="inbText"></div>
+  <a class="btn" id="inbBtn" target="_blank" rel="noopener" data-i="inbBtn"></a></div>
+</section>
+
+<section class="view" id="rate">
+  <h2 data-i="rvTitle"></h2>
+  <div class="rv-sub" data-i="rvSub"></div>
+  <div class="rv-avatars" id="rvAv"></div>
+  <div id="rvPanel"></div>
+</section>
+
+<div class="modal" id="modal"><div class="sheet">
+  <h3 id="mTitle"></h3><div id="mSub" style="color:var(--mute);font-size:13px"></div>
+  <input id="mName" data-ph="phName" autocomplete="name">
+  <input id="mPhone" data-ph="phPhone" inputmode="tel" autocomplete="tel">
+  <div class="msg" id="mMsg"></div>
+  <button class="btn" id="mSend" data-i="confirm"></button>
+  <button class="btn alt" id="mClose" data-i="cancel"></button>
+</div></div>
+
+<a class="fab" id="fab" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+
+<nav>
+  <button data-go="home" class="on"><span class="ic">🏠</span><span data-i="nHome"></span></button>
+  <button data-go="schedule"><span class="ic">📅</span><span data-i="nClasses"></span></button>
+  <button data-go="workout"><span class="ic">💪</span><span data-i="nWorkout"></span></button>
+  <button data-go="nutrition"><span class="ic">🍎</span><span data-i="tNutrition"></span></button>
+  <button data-go="rate"><span class="ic">⭐</span><span data-i="nRate"></span></button>
+</nav>
 
 <script>
+/* ===== EDIT THESE / عدّلي هذه القيم ===== */
+const WHATSAPP = "962793750075";
+let SPOTS = 15;
+const SPOT_OVERRIDE = { "Spinning": 13 };   // حصص إلها عدد أماكن مختلف
+const spotsFor = n => SPOT_OVERRIDE[n] || SPOTS;
+/* إيميلات الإشعارات (عن طريق FormSubmit). أول إرسال لازم تفعّلي الإيميل من الرسالة اللي بتوصلك */
+const NOTIFY_EMAIL = "mohammadotoom980@gmail.com";
+const NOTIFY_CC = "nousaibadajaa73@gmail.com";
 const API_URL = "https://script.google.com/macros/s/AKfycbw-CU9BPCb0h5ppU46K8qo9AxjSPgMyTE0iCF0gCzbX3KbtZCDkmwIGcSMeF8OXP2rP/exec";
-const DAYS = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
-const ORDER = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
-const DEFAULT_PLAN = [
-  {en:"Day 1 – Upper Body", ar:"اليوم 1 – Upper Body", items:[["DB Chest Press",null],["Cable Lat Pulldown",1],["Triceps Pushdown",2],["Biceps Curl",3],["DB Shoulder Press",null],["Abs Crunch",5],["Lower Back",4]]},
-  {en:"Day 2 – Lower Body", ar:"اليوم 2 – Lower Body", items:[["Leg Extension",6],["Seated Leg Curl",7],["Kickback",8],["Hip Abduction",9],["Hip Adduction",9],["Seated Calf Raises",10]]}
+/* Days keep their Arabic names internally (used for booking). [class, time, minutes, coach] */
+const SCHEDULE = {
+  "السبت": [["Barre pilates","09:30",60,"Layan"],["Zumba","11:00",60,"Bayan"],["Body pump","14:00",60,"Layan"],["Gym ball","15:00",60,"Samar"]],
+  "الأحد": [["TRX","09:30",60,"Samar"],["Core","11:00",60,"Bayan"],["Stick","14:00",60,"Samar"],["Pilates","15:00",60,"Layan"]],
+  "الاثنين": [["Body pump","09:30",60,"Layan"],["Band and ankle weights","11:00",60,"Samar"],["Oriental dance","14:00",60,"Doaa"],["Step","15:00",60,"Bayan"]],
+  "الثلاثاء": [["Core","09:30",60,"Bayan"],["Pilates","11:00",60,"Layan"],["Zumba","14:00",60,"Bayan"],["Dumbbell","15:00",60,"Samar"]],
+  "الأربعاء": [["Gym ball","09:30",60,"Samar"],["Oriental dance","11:00",60,"Doaa"],["Barre pilates","14:00",60,"Layan"],["Spinning","15:30",60,"Bayan"]],
+  "الخميس": [["Pilates","09:30",60,"Layan"],["TRX","11:00",60,"Samar"],["Body pump","14:00",60,"Layan"],["Zumba","15:00",60,"Bayan"]],
+  "الجمعة": []
+};
+const PLAN = [
+  {en:"Day 1 – Upper Body", ar:"اليوم 1 – Upper Body", items:[
+    ["DB Chest Press",null],["Cable Lat Pulldown",1],["Triceps Pushdown",2],["Biceps Curl",3],
+    ["DB Shoulder Press",null],["Abs Crunch",5],["Lower Back",4]]},
+  {en:"Day 2 – Lower Body", ar:"اليوم 2 – Lower Body", items:[
+    ["Leg Extension",6],["Seated Leg Curl",7],["Kickback",8],["Hip Abduction",9],["Hip Adduction",9],["Seated Calf Raises",10]]}
 ];
-const DEFAULT_CH = {
-  en:["20 squats 🍑","30-second plank 🔥","10 push-ups 💪","Drink 2 liters of water 💧","15 glute bridges ✨","20 jumping jacks ⚡","Stretch for 5 minutes 🧘‍♀️"],
-  ar:["20 سكوات 🍑","بلانك 30 ثانية 🔥","10 ضغطات 💪","اشربي 2 لتر ماي 💧","15 جلوت بريدج ✨","20 جامبينج جاك ⚡","تمدّد 5 دقايق 🧘‍♀️"]
-};
-const $ = s => document.querySelector(s);
-const clone = o => JSON.parse(JSON.stringify(o));
-let pw = "", info = null, mode = "coach", cfg = null, sd = ORDER[0];
+/* ======================================== */
 
-const ERR = {
-  denied: "كلمة السر غلط",
-  busy: "محاولات كثيرة، جرّبي بعد 10 دقايق",
-  setup: "لازم تحطي كلمة سر داخل السكربت (ADMIN_PASSWORD) وتنشري نسخة جديدة",
-  "bad date": "التاريخ غير صحيح (لازم يكون اليوم أو بعده)",
-  none: "ما في حصص مطابقة",
-  "bad request": "الطلب غير صحيح",
-  "bad config": "في بيانات غير صحيحة بالجدول",
-  "too big": "البيانات كبيرة كثير، قلّلي شوي"
+const DAYS_EN={"السبت":"Sat","الأحد":"Sun","الاثنين":"Mon","الثلاثاء":"Tue","الأربعاء":"Wed","الخميس":"Thu","الجمعة":"Fri"};
+const T={
+ en:{heroKick:"LET'S GO 🔥",heroTitle:"Your strongest self starts here",heroCta:"Book your class",today:"Today at the gym",noToday:"No classes today — rest up, you earned it 💗",rateSub:"Tell us how we're doing",chTitle:"TODAY'S CHALLENGE",chDone:"Done ✓",chDoneBtn:"I did it 💪",
+  quotes:["Every rep gets you closer to the girl you want to be.","You don't have to be perfect. You just have to show up.","Strong is the new beautiful. 💪","Small steps every day add up to big results.","You are stronger than your excuses.","Sweat now, shine later. ✨"],
+  ch:["20 squats 🍑","30-second plank 🔥","10 push-ups 💪","Drink 2 liters of water 💧","15 glute bridges ✨","20 jumping jacks ⚡","Stretch for 5 minutes 🧘‍♀️"],tSchedule:"Class Schedule",tWorkout:"Workout Plan",tNutrition:"Nutrition",tRate:"Rate Your Coach",
+  nHome:"Home",nClasses:"Classes",nWorkout:"Workout",nRate:"Rating",
+  empty:"No classes on this day",left:"{n} spots left",fullB:"Full",cancelledB:"Cancelled",cancelledBtn:"Class cancelled",sCancelled:"Sorry, this class has been cancelled",book:"Book your spot",classFull:"Class full",
+  phName:"Full name",phPhone:"Mobile number (e.g. 0791234567)",confirm:"Confirm booking",cancel:"Cancel",
+  needInfo:"Please enter your name and a valid phone number",booking:"Booking...",ok:"✅ Booked successfully! See you soon 💗",
+  err:"Something went wrong, please try again",noConn:"Connection failed, please try again",
+  sFull:"Sorry, this class is full",sDup:"You have already booked this class",
+  nutText:"Get a nutrition plan that fits you — message the gym on WhatsApp.",nutBtn:"💬 Request a nutrition plan",
+  waNut:"Hi, I'd like a nutrition plan – Xfit Gym",
+  inbTitle:"InBody Measurement",inbText:"Book an InBody scan to track your fat, muscle and progress.",inbBtn:"📅 Book an appointment",
+  waInb:"Hi, I'd like to book an InBody appointment – Xfit Gym",waHi:"Hi Xfit Gym",
+  machine:"Machine",free:"Free Weight",min:"min",
+  rvTitle:"Rate Your Coach",rvSub:"Pick a coach and tell us what you think 💗",rvHint:"👆 Tap the coach you'd like to rate",
+  rvLabel:["Tap a star","Poor","Fair","Good","Great","Amazing!"],
+  rvOpt:"Anything to add? (optional)",rvNameP:"Your name (optional)",rvSend:"Send rating 💗",rvStarsFirst:"Please pick a star rating first ⭐",
+  rvSending:"Sending...",rvThanks:"Thank you!",rvThanks2:"Your feedback helps us improve 💗",rvAnother:"Rate another coach",
+  tagsGood:["Professional 💪","On time ⏰","Motivating 🔥","Clear instructions 🎯","Fun vibe 🎉","Positive energy ✨"],
+  tagsBad:["Late ⏰","Unclear instructions","Low interaction","Class too crowded","Workout too hard"],
+  btn:"العربية",dateLoc:"en-GB"},
+ ar:{heroKick:"يلا نبدأ 🔥",heroTitle:"قوتك بتبدأ من هون",heroCta:"احجزي حصتك",today:"اليوم بالنادي",noToday:"ما في حصص اليوم — ارتاحي، بتستاهلي 💗",rateSub:"قولي لنا رأيك",chTitle:"تحدّي اليوم",chDone:"تم ✓",chDoneBtn:"خلّصتها 💪",
+  quotes:["كل تكرار بيقرّبك من النسخة اللي بدك تكونيها.","مش لازم تكوني مثالية، المهم تكوني موجودة.","القوة هي الجمال الجديد 💪","خطوات صغيرة كل يوم بتعمل نتيجة كبيرة.","إنتِ أقوى من أعذارك.","اتعبي هلأ، وانبهري بعدين ✨"],
+  ch:["20 سكوات 🍑","بلانك 30 ثانية 🔥","10 ضغطات 💪","اشربي 2 لتر ماي 💧","15 جلوت بريدج ✨","20 جامبينج جاك ⚡","تمدّد 5 دقايق 🧘‍♀️"],tSchedule:"جدول الحصص",tWorkout:"برنامج التمارين",tNutrition:"التغذية",tRate:"قيّمي الكوتش",
+  nHome:"الرئيسية",nClasses:"الحصص",nWorkout:"التمارين",nRate:"التقييم",
+  empty:"لا يوجد حصص في هذا اليوم",left:"{n} أماكن متبقية",fullB:"مكتملة",cancelledB:"ملغاة",cancelledBtn:"الحصة ملغاة",sCancelled:"عذراً، هاي الحصة ملغاة",book:"احجزي مكانك",classFull:"الحصة مكتملة",
+  phName:"الاسم الكامل",phPhone:"رقم الموبايل (مثال 0791234567)",confirm:"تأكيد الحجز",cancel:"إلغاء",
+  needInfo:"الرجاء إدخال الاسم ورقم صحيح",booking:"جاري الحجز...",ok:"✅ تم الحجز بنجاح! بنشوفك قريب 💗",
+  err:"صار خطأ، جرّبي مرة ثانية",noConn:"تعذّر الاتصال، جرّبي مرة ثانية",
+  sFull:"عذراً، الحصة مكتملة",sDup:"أنتِ حاجزة بهذه الحصة من قبل",
+  nutText:"للحصول على خطة غذائية مناسبة لكِ، تواصلي مع النادي على واتساب.",nutBtn:"💬 اطلبي خطة غذائية",
+  waNut:"مرحبا، بدي خطة غذائية – Xfit Gym",
+  inbTitle:"قياس InBody",inbText:"احجزي موعد قياس InBody لمتابعة الدهون والعضلات وتقدّمك.",inbBtn:"📅 احجزي موعد",
+  waInb:"مرحبا، بدي أحجز موعد InBody – Xfit Gym",waHi:"مرحبا Xfit gym",
+  machine:"جهاز",free:"Free Weight",min:"د",
+  rvTitle:"قيّمي الكوتش",rvSub:"اختاري الكوتش وقولي رأيك 💗",rvHint:"👆 اضغطي على اسم الكوتش اللي بدك تقيّميها",
+  rvLabel:["اضغطي على نجمة","ضعيف","مقبول","جيد","ممتاز","رائع جداً!"],
+  rvOpt:"تحبي تضيفي شي؟ (اختياري)",rvNameP:"اسمك (اختياري)",rvSend:"إرسال التقييم 💗",rvStarsFirst:"اختاري عدد النجوم أولاً ⭐",
+  rvSending:"جاري الإرسال...",rvThanks:"شكراً لتقييمك!",rvThanks2:"رأيك بيساعدنا نتطور 💗",rvAnother:"قيّمي كوتش ثانية",
+  tagsGood:["محترفة 💪","ملتزمة بالوقت ⏰","تشجّع وتحفّز 🔥","شرحها واضح 🎯","جو ممتع 🎉","طاقة إيجابية ✨"],
+  tagsBad:["تأخير ⏰","الشرح مش واضح","قليلة التفاعل","الحصة مزدحمة","التمارين صعبة"],
+  btn:"English",dateLoc:"ar-JO"}
 };
-const errText = e => ERR[e] || "صار خطأ، جرّبي مرة ثانية";
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+let L="en";
+try{const s=localStorage.getItem("xfit_lang");if(s==="ar"||s==="en")L=s}catch(e){}
+const t=k=>T[L][k];
+const wa=m=>`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(m)}`;
+const dayName=d=>L==="en"?DAYS_EN[d]:d;
+const dur=m=>L==="en"?`${m} ${t("min")}`:`${m} ${t("min")}`;
 
-async function api(params) {
-  const r = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(Object.assign({ pw }, params))
-  });
+function show(id){
+  $$(".view").forEach(v=>v.classList.toggle("on",v.id===id));
+  $$("nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===id));
+  scrollTo(0,0);
+}
+function go(id){
+  const cur=$(".view.on");
+  if(cur&&cur.id===id)return;
+  try{history.pushState({v:id},"")}catch(e){}
+  show(id);
+}
+try{history.replaceState({v:"home"},"")}catch(e){}
+addEventListener("popstate",e=>{
+  if($("#modal").classList.contains("on")){$("#modal").classList.remove("on");try{history.pushState({v:$(".view.on").id},"")}catch(x){}return}
+  show((e.state&&e.state.v)||"home");
+});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(b)go(b.dataset.go)});
+
+function applyStatic(){
+  document.documentElement.lang=L;
+  document.documentElement.dir=L==="ar"?"rtl":"ltr";
+  document.title="Xfit Gym";
+  $$("[data-i]").forEach(el=>el.textContent=t(el.dataset.i));
+  $$("[data-ph]").forEach(el=>el.placeholder=t(el.dataset.ph));
+  $("#langBtn").textContent=t("btn");
+  $("#nutBtn").href=wa(t("waNut"));
+  $("#inbBtn").href=wa(t("waInb"));
+  $("#fab").href=wa(t("waHi"));
+}
+function setLang(l){
+  L=l;try{localStorage.setItem("xfit_lang",l)}catch(e){}
+  applyStatic();renderDays();renderClasses();renderPlan();rvAvatars();rvPanel();renderHome();
+  if($("#modal").classList.contains("on")&&pending){$("#mSub").textContent=subText();$("#mMsg").textContent=""}
+}
+function subText(){
+  const d=nextDate(pending.day,pending.c[1]).toLocaleDateString(t("dateLoc"),{weekday:"long",day:"numeric",month:"long"});
+  return `${d} • ${pending.c[1]}`;
+}
+$("#langBtn").onclick=()=>setLang(L==="en"?"ar":"en");
+
+/* ----- schedule & booking ----- */
+const DOW={"الأحد":0,"الاثنين":1,"الثلاثاء":2,"الأربعاء":3,"الخميس":4,"الجمعة":5,"السبت":6};
+function nextDate(day,time){
+  const now=new Date(),[hh,mm]=time.split(":").map(Number);
+  const d=new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm);
+  d.setDate(d.getDate()+((DOW[day]-now.getDay()+7)%7));
+  if(d<now)d.setDate(d.getDate()+7);
+  return d;
+}
+const pad=n=>String(n).padStart(2,"0");
+const dkey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const keyOf=(day,c)=>`${dkey(nextDate(day,c[1]))}|${c[1]}|${c[0]}`;
+/* ----- إعدادات من لوحة الأدمن (الجدول، التمارين، التحدي اليومي) ----- */
+let EXTRA_COACHES=[];
+function applyConfig(c){
+  if(!c)return;
+  try{
+    if(c.schedule){Object.keys(SCHEDULE).forEach(k=>delete SCHEDULE[k]);Object.keys(c.schedule).forEach(k=>{SCHEDULE[k]=c.schedule[k]})}
+    if(Array.isArray(c.plan)&&c.plan.length)PLAN.splice(0,PLAN.length,...c.plan);
+    if(Array.isArray(c.coaches))EXTRA_COACHES=c.coaches.filter(Boolean);
+    if(c.spots){
+      const n=parseInt(c.spots.def,10);if(n>0)SPOTS=n;
+      Object.keys(SPOT_OVERRIDE).forEach(k=>delete SPOT_OVERRIDE[k]);
+      Object.keys(c.spots.by||{}).forEach(k=>{const v=parseInt(c.spots.by[k],10);if(v>0)SPOT_OVERRIDE[k]=v});
+    }
+    if(c.ch&&c.ch.ar&&c.ch.en&&c.ch.ar.length===7&&c.ch.en.length===7){T.ar.ch=c.ch.ar;T.en.ch=c.ch.en}
+  }catch(e){}
+}
+try{applyConfig(JSON.parse(localStorage.getItem("xfit_cfg")))}catch(e){}
+async function loadConfig(){
+  try{
+    const r=await api({action:"config"});
+    if(r&&r.ok&&r.config){
+      try{localStorage.setItem("xfit_cfg",JSON.stringify(r.config))}catch(e){}
+      applyConfig(r.config);
+      if(!SCHEDULE[cur])cur=Object.keys(SCHEDULE)[0];
+      renderDays();renderClasses();renderPlan();rvAvatars();rvPanel();renderHome();
+    }
+  }catch(e){}
+}
+
+let counts={}, cancelled={}, cur=Object.keys(SCHEDULE)[0], pending=null;
+
+/* بيبعت إشعار بالإيميل (بدون ما يعطّل التطبيق إذا فشل) */
+function notify(subject,fields){
+  try{
+    fetch("https://formsubmit.co/ajax/"+encodeURIComponent(NOTIFY_EMAIL),{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify(Object.assign({_subject:subject,_template:"table",_captcha:"false",_cc:NOTIFY_CC},fields))
+    }).catch(()=>{});
+  }catch(e){}
+}
+async function api(params){
+  const r=await fetch(API_URL+"?"+new URLSearchParams(params));
   return r.json();
 }
-function el(tag, text, cls) {
-  const e = document.createElement(tag);
-  if (text != null) e.textContent = text;
-  if (cls) e.className = cls;
-  return e;
+function serverErr(s){
+  const x=String(s||"").toLowerCase();
+  if(x==="cancelled")return t("sCancelled");
+  if(x==="full"||x.includes("مكتمل"))return t("sFull");
+  if(x==="dup"||x==="duplicate"||x.includes("حاجز"))return t("sDup");
+  return t("err");
 }
-function inp(value, ph, max, type) {
-  const i = el("input"); i.value = value == null ? "" : value;
-  if (ph) i.placeholder = ph; if (max) i.maxLength = max; if (type) i.type = type;
-  return i;
+/* Jordanian mobile: 07[789]xxxxxxx, also accepts +962 / 00962 / 962 prefixes */
+function normPhone(p){
+  let d=String(p).replace(/[٠-٩]/g,c=>"٠١٢٣٤٥٦٧٨٩".indexOf(c)).replace(/\D/g,"");
+  if(d.startsWith("00962"))d=d.slice(5);
+  else if(d.startsWith("962"))d=d.slice(3);
+  if(d.startsWith("7"))d="0"+d;
+  return /^07[789]\d{7}$/.test(d)?d:null;
 }
-function dayOf(date) {
-  const d = new Date(date + "T12:00:00");
-  return isNaN(d) ? null : DAYS[d.getDay()];
+async function loadCounts(){
+  try{const r=await api({action:"counts"});counts=r.counts||{};cancelled=r.cancelled||{}}catch(e){counts={};cancelled={}}
+  renderClasses();
 }
-function setMsg(node, text, kind) { node.textContent = text || ""; node.className = node.className.replace(/\s*\b(err|ok)\b/g, "") + (kind ? " " + kind : ""); }
+function renderDays(){
+  $("#days").innerHTML=Object.keys(SCHEDULE).map(d=>`<button class="day ${d===cur?"on":""}" data-d="${d}">${dayName(d)}</button>`).join("");
+}
+function renderClasses(){
+  const list=SCHEDULE[cur];
+  if(!list.length){$("#classes").innerHTML=`<div class="empty">${t("empty")}</div>`;return}
+  $("#classes").innerHTML=list.map((c,i)=>{
+    const [n,tm,m,co]=c,k=keyOf(cur,c),left=Math.max(0,spotsFor(n)-(counts[k]||0));
+    const dt=nextDate(cur,tm),when=dt.toLocaleDateString(t("dateLoc"),{weekday:"long",day:"numeric",month:"long"});
+    const ck=dkey(dt)+"|"+n.toLowerCase(),isOff=Object.prototype.hasOwnProperty.call(cancelled,ck),note=isOff?cancelled[ck]:"";
+    if(isOff)return `<div class="cls off"><div class="top"><span class="name">${n}</span><span class="badge off">${t("cancelledB")}</span></div>
+    <div class="meta"><bdi>🕒 ${tm}</bdi> &nbsp;•&nbsp; <bdi>👩‍🏫 ${co}</bdi> &nbsp;•&nbsp; <bdi>⏱ ${dur(m)}</bdi><br><bdi>📆 ${when}</bdi>${note?`<br><bdi>📝 ${note.replace(/</g,"&lt;")}</bdi>`:""}</div>
+    <button class="btn off" disabled>${t("cancelledBtn")}</button></div>`;
+    return `<div class="cls"><div class="top"><span class="name">${n}</span><span class="badge">${left?t("left").replace("{n}",left):t("fullB")}</span></div>
+    <div class="meta"><bdi>🕒 ${tm}</bdi> &nbsp;•&nbsp; <bdi>👩‍🏫 ${co}</bdi> &nbsp;•&nbsp; <bdi>⏱ ${dur(m)}</bdi><br><bdi>📆 ${when}</bdi></div>
+    <button class="btn ${left?"":"full"}" data-book="${i}">${left?t("book"):t("classFull")}</button></div>`}).join("");
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-d]");if(b){cur=b.dataset.d;renderDays();renderClasses()}
+  const k=e.target.closest("[data-book]");
+  if(k){const c=SCHEDULE[cur][+k.dataset.book];pending={c,key:keyOf(cur,c),day:cur};
+    $("#mTitle").textContent=c[0];$("#mSub").textContent=subText();$("#mMsg").textContent="";
+    $("#mSend").style.display="";$("#mSend").disabled=false;
+    try{history.pushState({v:$(".view.on").id},"")}catch(x){}
+    $("#modal").classList.add("on")}
+});
+$("#mClose").onclick=()=>$("#modal").classList.remove("on");
+$("#mSend").onclick=async()=>{
+  if($("#mSend").disabled)return;
+  const name=$("#mName").value.trim(),phone=normPhone($("#mPhone").value),m=$("#mMsg");
+  if(name.length<2||!phone){m.style.color="#d33";m.textContent=t("needInfo");return}
+  m.style.color="var(--mute)";m.textContent=t("booking");$("#mSend").disabled=true;
+  try{
+    const r=await api({action:"book",key:pending.key,cls:pending.c[0],day:pending.day,time:pending.c[1],name,phone,spots:SPOTS});
+    if(r.ok){m.style.color="#1a9d4a";m.textContent=t("ok");$("#mSend").style.display="none";loadCounts();
+      notify("حجز جديد - "+pending.c[0],{"الحصة":pending.c[0],"اليوم":pending.day+" "+pending.c[1],"الاسم":name,"الرقم":phone})}
+    else{m.style.color="#d33";m.textContent=serverErr(r.error)}
+  }catch(e){m.style.color="#d33";m.textContent=t("noConn")}
+  $("#mSend").disabled=false;
+};
 
-/* ---------- login ---------- */
-async function login(silent) {
-  const m = $("#loginMsg");
-  if (!silent) setMsg(m, "...");
-  $("#loginBtn").disabled = true;
-  try {
-    const r = await api({ action: "adminInfo" });
-    if (!r.ok) { sessionStorage.removeItem("xfit_pw"); if (!silent) setMsg(m, errText(r.error), "err"); return; }
-    info = r;
-    try { sessionStorage.setItem("xfit_pw", pw); } catch (e) {}
-    $("#login").hidden = true; $("#panel").hidden = false;
-    loadCfg(); fillForm(); renderList(); renderAll();
-  } catch (e) {
-    if (!silent) setMsg(m, "ما في اتصال، جرّبي مرة ثانية", "err");
-  } finally { $("#loginBtn").disabled = false; }
+/* ----- workout plan ----- */
+function renderPlan(){
+  $("#plan").innerHTML=PLAN.map(d=>`<details><summary>${d[L]}</summary><ul>${d.items.map(([n,mc])=>`<li><bdi>${n}</bdi> – <bdi>${mc?t("machine")+" "+mc:t("free")}</bdi></li>`).join("")}</ul></details>`).join("");
 }
-$("#loginBtn").onclick = () => { pw = $("#pw").value; if (pw) login(false); };
-$("#pw").addEventListener("keydown", e => { if (e.key === "Enter") $("#loginBtn").click(); });
-$("#logout").onclick = () => { try { sessionStorage.removeItem("xfit_pw"); } catch (e) {} location.reload(); };
 
-/* ---------- navigation ---------- */
-$("#nav").addEventListener("click", e => {
-  const b = e.target.closest("button"); if (!b) return;
-  document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("on", x === b));
-  ["pCancel","pSched","pCoach","pEx"].forEach(id => $("#" + id).hidden = id !== b.dataset.p);
+/* ----- coach rating ----- */
+function coachNames(){const s=new Set();Object.values(SCHEDULE).forEach(l=>l.forEach(c=>s.add(c[3])));EXTRA_COACHES.forEach(n=>s.add(n));return Array.from(s)}
+const RV_EMO=["💗","🌸","✨","🌷","🦋","🍓"];
+const RV_FACE=["","😞","😕","🙂","😊","🤩"];
+const rv={sel:null,stars:{},tags:{},text:{},nm:{},done:{},cf:{}};   /* tags stored as indexes */
+function rvAvatars(){
+  $("#rvAv").innerHTML=coachNames().map((n,i)=>`<button class="rv-av ${rv.sel===i?"on":""}" data-rv="${i}"><span class="rv-c">${RV_EMO[i%RV_EMO.length]}${rv.done[i]?"<i>✓</i>":""}</span><span class="rv-n">${n}</span></button>`).join("");
+}
+function rvPanel(anim){
+  const i=rv.sel,P=$("#rvPanel");
+  if(i===null){P.innerHTML=`<div class="rv-hint">${t("rvHint")}</div>`;return}
+  const n=coachNames()[i],st=rv.stars[i]||0;
+  if(rv.done[i]){
+    P.innerHTML=`<div class="rv-card new" id="rvCard"><div class="rv-face">🥰</div><div class="rv-thanks">${t("rvThanks")}</div>
+    <div class="rv-label">${t("rvThanks2")}</div><button class="rv-send" data-rvback="1">${t("rvAnother")}</button></div>`;
+    if(!rv.cf[i]){rv.cf[i]=true;rvConfetti()}return;
+  }
+  const bad=st&&st<=2,tags=bad?T[L].tagsBad:T[L].tagsGood,chosen=rv.tags[i]||[];
+  P.innerHTML=`<div class="rv-card ${anim?"new":""}"><div class="rv-who">${n}</div>
+    <div class="rv-face">${RV_FACE[st]||"💭"}</div><div class="rv-label">${t("rvLabel")[st]}</div>
+    <div class="rv-stars">${[1,2,3,4,5].map(v=>`<button class="rv-s ${v<=st?"on":""}" data-rvs="${v}" aria-label="${v}">★</button>`).join("")}</div>
+    ${st?`<div class="rv-tags">${tags.map((tg,k)=>`<button class="rv-tag ${chosen.includes(k)?"on":""}" data-rvt="${k}">${tg}</button>`).join("")}</div>`:""}
+    <textarea class="rv-in" id="rvText" rows="2" maxlength="200" placeholder="${t("rvOpt")}">${rv.text[i]||""}</textarea>
+    <input class="rv-in" id="rvName" maxlength="60" placeholder="${t("rvNameP")}" value="${rv.nm[i]||""}">
+    <div class="rv-msg" id="rvMsg"></div>
+    <button class="rv-send" id="rvSend">${t("rvSend")}</button></div>`;
+}
+function rvConfetti(){
+  const c=$("#rvCard");if(!c)return;const e=["💗","✨","⭐","🌸","🎉"];
+  for(let k=0;k<26;k++){const s=document.createElement("span");s.className="rv-conf";
+    s.textContent=e[k%e.length];s.style.left=(Math.random()*95)+"%";s.style.animationDelay=(Math.random()*0.8)+"s";c.appendChild(s)}
+}
+document.addEventListener("input",e=>{
+  if(rv.sel===null)return;
+  if(e.target.id==="rvText")rv.text[rv.sel]=e.target.value;
+  if(e.target.id==="rvName")rv.nm[rv.sel]=e.target.value;
+});
+document.addEventListener("click",async e=>{
+  const a=e.target.closest("[data-rv]");
+  if(a){rv.sel=+a.dataset.rv;rvAvatars();rvPanel(true);return}
+  if(e.target.closest("[data-rvback]")){rv.sel=null;rvAvatars();rvPanel();return}
+  const i=rv.sel;if(i===null)return;
+  const s=e.target.closest("[data-rvs]");
+  if(s){const v=+s.dataset.rvs;if(((rv.stars[i]||0)<=2)!==(v<=2))rv.tags[i]=[];rv.stars[i]=v;rvPanel();return}
+  const tg=e.target.closest("[data-rvt]");
+  if(tg){const k=+tg.dataset.rvt,l=rv.tags[i]||(rv.tags[i]=[]),x=l.indexOf(k);x>=0?l.splice(x,1):l.push(k);rvPanel();return}
+  if(e.target.id==="rvSend"){
+    const m=$("#rvMsg"),btn=e.target;
+    if(!rv.stars[i]){m.style.color="#d33";m.textContent=t("rvStarsFirst");return}
+    /* tags are always sent in Arabic so the owner's emails stay consistent */
+    const arTags=(rv.stars[i]<=2?T.ar.tagsBad:T.ar.tagsGood),picked=(rv.tags[i]||[]).map(k=>arTags[k]).filter(Boolean);
+    const txt=(rv.text[i]||"").trim();
+    const comment=(picked.join(" • ")+(txt?" | "+txt:"")).slice(0,300);
+    m.style.color="var(--mute)";m.textContent=t("rvSending");btn.disabled=true;
+    try{
+      const r=await api({action:"rate",coach:coachNames()[i],stars:rv.stars[i],comment,name:(rv.nm[i]||"").trim()});
+      if(r.ok){
+        notify("تقييم جديد - "+coachNames()[i]+" ("+rv.stars[i]+"/5)",{"الكوتش":coachNames()[i],"التقييم":rv.stars[i]+" من 5","التعليق":comment||"-","الاسم":(rv.nm[i]||"").trim()||"بدون اسم"});
+        rv.done[i]=true;rvAvatars();rvPanel();return}
+      m.style.color="#d33";m.textContent=serverErr(r.error);
+    }catch(err){m.style.color="#d33";m.textContent=t("noConn")}
+    btn.disabled=false;
+  }
 });
 
-/* ---------- config (draft) ---------- */
-function loadCfg() {
-  const c = info.config || {};
-  const sch = {};
-  ORDER.forEach(d => { sch[d] = clone((c.schedule || info.schedule || {})[d] || []); });
-  const set = [];
-  (c.coaches || info.coaches || []).forEach(n => { if (set.indexOf(n) < 0) set.push(n); });
-  ORDER.forEach(d => sch[d].forEach(x => { if (set.indexOf(x[3]) < 0) set.push(x[3]); }));
-  cfg = {
-    schedule: sch,
-    coaches: set,
-    plan: clone(c.plan && c.plan.length ? c.plan : DEFAULT_PLAN),
-    spots: clone(c.spots || { def: 15, by: { "Spinning": 13 } }),
-    ch: clone(c.ch && c.ch.ar && c.ch.en && c.ch.ar.length === 7 && c.ch.en.length === 7 ? c.ch : DEFAULT_CH)
-  };
+/* ----- home: motivation, today strip, daily challenge ----- */
+const DAY_BY_NUM=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+let qi=Math.floor(Math.random()*6),qTimer=null;
+function showQuote(){
+  const q=$("#quote");q.style.opacity=0;
+  setTimeout(()=>{q.textContent=T[L].quotes[qi%T[L].quotes.length];q.style.opacity=1},250);
 }
-function renderAll() { renderDayTabs(); renderClassRows(); renderSpots(); renderCoaches(); renderCh(); renderPlan(); }
+function renderToday(){
+  const now=new Date(),dk=DAY_BY_NUM[now.getDay()],list=(SCHEDULE[dk]||[]).filter(c=>{
+    const [hh,mm]=c[1].split(":").map(Number);return new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm)>now});
+  $("#todayChips").innerHTML=list.length?list.map((c,i)=>`<button class="tchip" data-today="${dk}"><b>${c[1]}</b><span>${c[0]}</span></button>`).join(""):`<div class="nochip">${t("noToday")}</div>`;
+}
+document.addEventListener("click",e=>{const c=e.target.closest("[data-today]");if(c){cur=c.dataset.today;renderDays();renderClasses();go("schedule")}});
+function chKey(){return "xfit_ch_"+dkey(new Date())}
+function chIsDone(){try{return localStorage.getItem(chKey())==="1"}catch(e){return false}}
+function renderChallenge(){
+  const i=new Date().getDay(),done=chIsDone();
+  $("#chText").textContent=T[L].ch[i];
+  $("#chal").classList.toggle("done",done);
+  $("#chBtn").textContent=done?t("chDone"):t("chDoneBtn");
+  $("#chE").textContent=done?"🏆":"🔥";
+}
+$("#chBtn").onclick=()=>{try{localStorage.setItem(chKey(),chIsDone()?"0":"1")}catch(e){}renderChallenge()};
+function renderHome(){renderToday();renderChallenge();qi++;showQuote()}
+clearInterval(qTimer);qTimer=setInterval(()=>{qi++;showQuote()},5000);
 
-/* ---------- schedule editor ---------- */
-function renderDayTabs() {
-  $("#dayTabs").replaceChildren(...ORDER.map(d => {
-    const b = el("button", d); b.type = "button";
-    if (d === sd) b.className = "on";
-    b.onclick = () => { sd = d; renderDayTabs(); renderClassRows(); };
-    return b;
-  }));
-}
-function coachSelect(value) {
-  const s = el("select");
-  const list = cfg.coaches.slice(); if (value && list.indexOf(value) < 0) list.push(value);
-  list.forEach(n => { const o = el("option", n); o.value = n; s.appendChild(o); });
-  if (!value) { const o = el("option", "— اختاري كوتش —"); o.value = ""; s.insertBefore(o, s.firstChild); }
-  s.value = value || "";
-  return s;
-}
-function renderClassRows() {
-  const names = [];
-  ORDER.forEach(d => cfg.schedule[d].forEach(c => { if (names.indexOf(c[0]) < 0) names.push(c[0]); }));
-  $("#clsNames").replaceChildren(...names.map(n => { const o = el("option"); o.value = n; return o; }));
-  const list = cfg.schedule[sd], box = $("#classRows");
-  if (!list.length) { box.replaceChildren(el("div", "ما في حصص بهاليوم (يوم راحة)", "empty")); return; }
-  box.replaceChildren(...list.map((c, i) => {
-    const row = el("div", null, "row"), l1 = el("div", null, "l1"), l2 = el("div", null, "l2");
-    const name = inp(c[0], "اسم الحصة", 40); name.setAttribute("list", "clsNames");
-    name.oninput = () => { c[0] = name.value; }; name.onchange = renderSpots;
-    const time = inp(c[1], "", 0, "time"); time.oninput = () => { c[1] = time.value; };
-    const mins = inp(c[2], "دقيقة", 0, "number"); mins.min = 15; mins.max = 240; mins.oninput = () => { c[2] = parseInt(mins.value, 10) || 60; };
-    const coach = coachSelect(c[3]); coach.onchange = () => { c[3] = coach.value; };
-    const del = el("button", "حذف", "danger sm"); del.type = "button";
-    del.onclick = () => { if (confirm("حذف حصة " + (c[0] || "") + " من يوم " + sd + "؟")) { list.splice(i, 1); renderClassRows(); renderSpots(); } };
-    l1.appendChild(name);
-    l2.append(time, mins, coach, del);
-    row.append(l1, l2);
-    return row;
-  }));
-}
-$("#addClass").onclick = () => {
-  cfg.schedule[sd].push(["", "09:00", 60, cfg.coaches[0] || ""]);
-  renderClassRows();
-};
+applyStatic();renderDays();renderClasses();renderPlan();rvAvatars();rvPanel();renderHome();loadCounts();loadConfig();
 
-/* ---------- spots editor ---------- */
-function allClassNames() {
-  const names = [];
-  ORDER.forEach(d => cfg.schedule[d].forEach(c => { const n = String(c[0]).trim(); if (n && names.indexOf(n) < 0) names.push(n); }));
-  return names;
+/* ----- PWA: offline support ----- */
+if("serviceWorker" in navigator&&location.protocol!=="file:"){
+  addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
 }
-function renderSpots() {
-  const def = $("#spotDef"); def.value = cfg.spots.def;
-  def.oninput = () => { cfg.spots.def = parseInt(def.value, 10) || 0; };
-  cfg.spots.by = cfg.spots.by || {};
-  $("#spotRows").replaceChildren(...allClassNames().map(n => {
-    const row = el("div", null, "crow");
-    const i = inp(cfg.spots.by[n], "الافتراضي", 0, "number"); i.min = 1; i.max = 100;
-    i.oninput = () => { if (i.value) cfg.spots.by[n] = parseInt(i.value, 10); else delete cfg.spots.by[n]; };
-    const lab = el("b", n); lab.style.flex = "1";
-    row.append(lab, i); i.style.width = "110px";
-    return row;
-  }));
-}
-
-/* ---------- coaches editor ---------- */
-function usage(n) { let k = 0; ORDER.forEach(d => cfg.schedule[d].forEach(c => { if (c[3] === n) k++; })); return k; }
-function renderCoaches() {
-  const box = $("#coachRows");
-  box.replaceChildren(...cfg.coaches.map((n, i) => {
-    const row = el("div", null, "crow"), k = usage(n);
-    const i1 = inp(n, "", 30);
-    i1.onchange = () => {
-      const v = i1.value.trim();
-      if (!v || (cfg.coaches.indexOf(v) >= 0 && v !== n)) { i1.value = n; return; }
-      ORDER.forEach(d => cfg.schedule[d].forEach(c => { if (c[3] === n) c[3] = v; }));
-      cfg.coaches[i] = v; renderCoaches(); renderClassRows();
-    };
-    const d = el("button", "حذف", "danger sm"); d.type = "button";
-    d.onclick = () => {
-      const q = k ? "الكوتش " + n + " عندها " + k + " حصة. إذا حذفتيها بتصير حصصها بدون كوتش، ولازم تختاري كوتش بديل بتبويب الجدول قبل الحفظ. متأكدة؟" : "حذف الكوتش " + n + "؟";
-      if (!confirm(q)) return;
-      ORDER.forEach(dd => cfg.schedule[dd].forEach(c => { if (c[3] === n) c[3] = ""; }));
-      cfg.coaches.splice(i, 1); renderCoaches(); renderClassRows();
-      if (k) setMsg(document.querySelector("#pCoach .saveMsg"), "تنبيه: " + k + " حصة بدون كوتش. روحي لتبويب الجدول واختاري كوتش بديل ثم احفظي.", "err");
-    };
-    row.append(i1, el("span", k + " حصة"), d);
-    return row;
-  }));
-}
-$("#addCoach").onclick = () => {
-  const v = $("#newCoach").value.trim();
-  if (!v || cfg.coaches.indexOf(v) >= 0) return;
-  cfg.coaches.push(v); $("#newCoach").value = ""; renderCoaches(); renderClassRows();
-};
-
-/* ---------- daily challenge ---------- */
-function renderCh() {
-  $("#chRows").replaceChildren(...DAYS.map((d, i) => {
-    const w = el("div", null, "chrow");
-    const a = inp(cfg.ch.ar[i], "بالعربي", 80), e = inp(cfg.ch.en[i], "English", 80);
-    e.dir = "ltr";
-    a.oninput = () => { cfg.ch.ar[i] = a.value; }; e.oninput = () => { cfg.ch.en[i] = e.value; };
-    w.append(el("b", d), a, e);
-    return w;
-  }));
-}
-
-/* ---------- workout plan ---------- */
-function renderPlan() {
-  const box = $("#planRows");
-  if (!cfg.plan.length) { box.replaceChildren(el("div", "ما في أيام تمارين", "empty")); return; }
-  box.replaceChildren(...cfg.plan.map((p, pi) => {
-    const w = el("div", null, "plan");
-    const ar = inp(p.ar, "اسم اليوم بالعربي", 50), en = inp(p.en, "Day name (English)", 50);
-    en.dir = "ltr"; en.style.marginTop = "6px";
-    ar.oninput = () => { p.ar = ar.value; }; en.oninput = () => { p.en = en.value; };
-    w.append(ar, en, el("h3", "التمارين"));
-    p.items.forEach((it, ii) => {
-      const r = el("div", null, "xrow");
-      const n = inp(it[0], "اسم التمرين", 50); n.dir = "ltr";
-      const m = inp(it[1], "جهاز #", 0, "number"); m.min = 1; m.max = 99;
-      n.oninput = () => { it[0] = n.value; };
-      m.oninput = () => { it[1] = m.value ? parseInt(m.value, 10) : null; };
-      const d = el("button", "✕", "danger sm"); d.type = "button";
-      d.onclick = () => { p.items.splice(ii, 1); renderPlan(); };
-      r.append(n, m, d); w.appendChild(r);
-    });
-    const hint = el("p", "رقم الجهاز فاضي = أوزان حرة", "hint");
-    const add = el("button", "+ تمرين", "ghost sm"); add.type = "button";
-    add.onclick = () => { p.items.push(["", null]); renderPlan(); };
-    const del = el("button", "حذف هاليوم", "danger sm"); del.type = "button"; del.style.marginInlineStart = "8px";
-    del.onclick = () => { if (confirm("حذف " + (p.ar || "هاليوم") + "؟")) { cfg.plan.splice(pi, 1); renderPlan(); } };
-    w.append(hint, add, del);
-    return w;
-  }));
-}
-$("#addPlan").onclick = () => {
-  const n = cfg.plan.length + 1;
-  cfg.plan.push({ ar: "اليوم " + n, en: "Day " + n, items: [["", null]] });
-  renderPlan();
-};
-
-/* ---------- save ---------- */
-function buildPayload() {
-  const schedule = {};
-  for (const d of ORDER) {
-    const list = [];
-    for (const c of cfg.schedule[d]) {
-      const name = String(c[0]).trim(), time = String(c[1]).trim(), coach = String(c[3]).trim();
-      if (!name || !/^\d{2}:\d{2}$/.test(time) || !coach) throw new Error("كملي اسم الحصة والوقت والكوتش (" + d + ")");
-      list.push([name, time, Math.min(240, Math.max(15, parseInt(c[2], 10) || 60)), coach]);
-    }
-    list.sort((a, b) => a[1].localeCompare(b[1]));
-    schedule[d] = list;
-  }
-  const plan = cfg.plan.map(p => ({
-    ar: String(p.ar).trim(), en: String(p.en).trim() || String(p.ar).trim(),
-    items: p.items.filter(it => String(it[0]).trim()).map(it => [String(it[0]).trim(), it[1] ? Number(it[1]) : null])
-  })).filter(p => p.ar);
-  const ch = { ar: cfg.ch.ar.map(s => String(s).trim()), en: cfg.ch.en.map(s => String(s).trim()) };
-  if (ch.ar.concat(ch.en).some(s => !s)) throw new Error("كملي كل تحديات الأسبوع (عربي وإنجليزي)");
-  const coaches = cfg.coaches.slice();
-  const def = parseInt(cfg.spots.def, 10);
-  if (!(def >= 1 && def <= 100)) throw new Error("العدد الافتراضي للأماكن لازم يكون بين 1 و100");
-  const by = {};
-  allClassNames().forEach(n => {
-    const v = cfg.spots.by[n];
-    if (v == null || v === "") return;
-    if (!(v >= 1 && v <= 100)) throw new Error("عدد أماكن " + n + " لازم يكون بين 1 و100");
-    by[n] = v;
-  });
-  return { schedule, plan, ch, coaches, spots: { def, by } };
-}
-async function save() {
-  const msgs = document.querySelectorAll(".saveMsg"), btns = document.querySelectorAll(".saveBtn");
-  msgs.forEach(m => setMsg(m, "...", ""));
-  let payload;
-  try { payload = buildPayload(); }
-  catch (e) { msgs.forEach(m => setMsg(m, e.message, "err")); return; }
-  btns.forEach(b => b.disabled = true);
-  try {
-    const r = await api({ action: "adminSetConfig", config: JSON.stringify(payload) });
-    if (!r.ok) { msgs.forEach(m => setMsg(m, errText(r.error), "err")); return; }
-    info.config = payload; info.schedule = payload.schedule; info.coaches = payload.coaches;
-    loadCfg(); renderAll(); fillForm();
-    msgs.forEach(m => setMsg(m, "✅ انحفظ. بيظهر للمشتركات خلال دقيقة", "ok"));
-  } catch (e) {
-    msgs.forEach(m => setMsg(m, "ما في اتصال، جرّبي مرة ثانية", "err"));
-  } finally { btns.forEach(b => b.disabled = false); }
-}
-document.querySelectorAll(".saveBtn").forEach(b => b.onclick = save);
-
-/* ---------- cancel form ---------- */
-function fillForm() {
-  const classes = [];
-  Object.keys(info.schedule).forEach(d => info.schedule[d].forEach(c => { if (classes.indexOf(c[0]) < 0) classes.push(c[0]); }));
-  $("#coachSel").replaceChildren(...info.coaches.map(c => { const o = el("option", c); o.value = c; return o; }));
-  $("#classSel").replaceChildren(...classes.map(c => { const o = el("option", c); o.value = c; return o; }));
-  const d = $("#date"); d.min = info.today; if (!d.value) d.value = info.today;
-  renderPreview();
-}
-function targets() {
-  const day = dayOf($("#date").value);
-  const list = (day && info.schedule[day]) || [];
-  const v = mode === "coach" ? $("#coachSel").value : $("#classSel").value;
-  return { day, list: list.filter(c => mode === "coach" ? c[3] === v : c[0] === v) };
-}
-function renderPreview() {
-  const { day, list } = targets(), p = $("#preview");
-  if (!day) { p.textContent = "اختاري تاريخ"; return; }
-  p.replaceChildren();
-  p.appendChild(el("b", day + ":"));
-  if (!list.length) { p.appendChild(el("div", "ما في حصص مطابقة بهذا اليوم")); $("#cancelBtn").disabled = true; return; }
-  $("#cancelBtn").disabled = false;
-  list.forEach(c => p.appendChild(el("div", "• " + c[0] + " — " + c[1] + " (" + c[3] + ")")));
-}
-function setMode(m) {
-  mode = m;
-  $("#mCoach").classList.toggle("on", m === "coach");
-  $("#mClass").classList.toggle("on", m === "class");
-  $("#coachSel").hidden = m !== "coach";
-  $("#classSel").hidden = m !== "class";
-  renderPreview();
-}
-$("#mCoach").onclick = () => setMode("coach");
-$("#mClass").onclick = () => setMode("class");
-["#date", "#coachSel", "#classSel"].forEach(s => $(s).addEventListener("change", renderPreview));
-
-$("#cancelBtn").onclick = async () => {
-  const { day, list } = targets();
-  if (!day || !list.length) return;
-  const names = list.map(c => c[0] + " " + c[1]).join("، ");
-  if (!confirm("متأكدة بدك تلغي (" + day + " " + $("#date").value + "): " + names + "؟")) return;
-
-  const msg = $("#msg"), res = $("#result");
-  setMsg(msg, "...", ""); res.replaceChildren(); $("#cancelBtn").disabled = true;
-  try {
-    const params = { action: "adminCancel", date: $("#date").value, note: $("#note").value.trim() };
-    if (mode === "coach") params.coach = $("#coachSel").value; else params.cls = $("#classSel").value;
-    const r = await api(params);
-    if (!r.ok) { setMsg(msg, errText(r.error), "err"); return; }
-    setMsg(msg, "✅ تم إلغاء الحصص", "ok");
-    r.cancelled.forEach(c => {
-      const box = el("div", null, "c");
-      box.appendChild(el("b", c.cls + " — " + c.time));
-      if (!c.bookings.length) box.appendChild(el("div", "ما كان في حجوزات"));
-      else {
-        box.appendChild(el("div", "فيها " + c.bookings.length + " حجز، تواصلي معهم:"));
-        c.bookings.forEach(b => {
-          const row = el("div", b.name + " — ");
-          const a = el("a", b.phone); a.href = "tel:" + b.phone;
-          row.appendChild(a); box.appendChild(row);
-        });
-      }
-      res.appendChild(box);
-    });
-    $("#note").value = "";
-    refreshList();
-  } catch (e) {
-    setMsg(msg, "ما في اتصال، جرّبي مرة ثانية", "err");
-  } finally { renderPreview(); }
-};
-async function refreshList() {
-  try { const i = await api({ action: "adminInfo" }); if (i.ok) { info.cancellations = i.cancellations; renderList(); } } catch (e) {}
-}
-
-/* ---------- upcoming cancellations ---------- */
-function renderList() {
-  const box = $("#list");
-  if (!info.cancellations.length) { box.replaceChildren(el("div", "ما في إلغاءات قادمة", "empty")); return; }
-  box.replaceChildren(...info.cancellations.map(x => {
-    const row = el("div", null, "item"), left = el("div");
-    left.appendChild(el("div", x.cls, "t"));
-    left.appendChild(el("div", (x.day || "") + " " + x.date + (x.note ? " — " + x.note : ""), "s"));
-    const b = el("button", "إرجاع", "ghost");
-    b.onclick = async () => {
-      if (!confirm("إرجاع حصة " + x.cls + " بتاريخ " + x.date + "؟")) return;
-      b.disabled = true;
-      try {
-        const r = await api({ action: "adminRestore", date: x.date, cls: x.cls });
-        if (!r.ok) { alert(errText(r.error)); b.disabled = false; return; }
-        refreshList();
-      } catch (e) { alert("ما في اتصال، جرّبي مرة ثانية"); b.disabled = false; }
-    };
-    row.append(left, b);
-    return row;
-  }));
-}
-
-try { const s = sessionStorage.getItem("xfit_pw"); if (s) { pw = s; login(true); } } catch (e) {}
 </script>
 </body>
 </html>
