@@ -265,7 +265,8 @@ function coachSelect(value) {
   const s = el("select");
   const list = cfg.coaches.slice(); if (value && list.indexOf(value) < 0) list.push(value);
   list.forEach(n => { const o = el("option", n); o.value = n; s.appendChild(o); });
-  s.value = value || list[0] || "";
+  if (!value) { const o = el("option", "— اختاري كوتش —"); o.value = ""; s.insertBefore(o, s.firstChild); }
+  s.value = value || "";
   return s;
 }
 function renderClassRows() {
@@ -328,8 +329,13 @@ function renderCoaches() {
       cfg.coaches[i] = v; renderCoaches(); renderClassRows();
     };
     const d = el("button", "حذف", "danger sm"); d.type = "button";
-    if (k) { d.disabled = true; d.title = "عندها حصص"; }
-    d.onclick = () => { if (confirm("حذف الكوتش " + n + "؟")) { cfg.coaches.splice(i, 1); renderCoaches(); renderClassRows(); } };
+    d.onclick = () => {
+      const q = k ? "الكوتش " + n + " عندها " + k + " حصة. إذا حذفتيها بتصير حصصها بدون كوتش، ولازم تختاري كوتش بديل بتبويب الجدول قبل الحفظ. متأكدة؟" : "حذف الكوتش " + n + "؟";
+      if (!confirm(q)) return;
+      ORDER.forEach(dd => cfg.schedule[dd].forEach(c => { if (c[3] === n) c[3] = ""; }));
+      cfg.coaches.splice(i, 1); renderCoaches(); renderClassRows();
+      if (k) setMsg(document.querySelector("#pCoach .saveMsg"), "تنبيه: " + k + " حصة بدون كوتش. روحي لتبويب الجدول واختاري كوتش بديل ثم احفظي.", "err");
+    };
     row.append(i1, el("span", k + " حصة"), d);
     return row;
   }));
