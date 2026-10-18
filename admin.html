@@ -6,6 +6,8 @@
 <meta name="robots" content="noindex,nofollow">
 <title>Xfit Gym · الأدمن</title>
 <style>
+.embed h1,.embed #logout{display:none}
+.embed body{background:transparent}
 :root{--pink:#e0457b;--pink-l:#fde8f0;--line:#f1d3df;--mute:#777;--bg:#fff8fb}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;color:#222}
@@ -69,6 +71,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 </style>
 </head>
 <body>
+<script>if (/[?&]embed/.test(location.search)) document.documentElement.classList.add("embed");</script>
 <div class="wrap">
   <h1>لوحة الأدمن · Xfit Gym</h1>
 
@@ -243,7 +246,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 let pw = "", fbOk = false, info = null, mode = "coach", cfg = null, sd = ORDER[0];
 
 const ERR = {
-  denied: "كلمة السر غلط",
+  denied: "هالحساب مش حساب الأدمن",
   busy: "محاولات كثيرة، جرّبي بعد 10 دقايق",
   setup: "لازم تحطي كلمة سر داخل السكربت (ADMIN_PASSWORD) وتنشري نسخة جديدة",
   "bad date": "التاريخ غير صحيح (لازم يكون اليوم أو بعده)",
@@ -255,10 +258,11 @@ const ERR = {
 const errText = e => ERR[e] || "صار خطأ، جرّبي مرة ثانية";
 
 async function api(params) {
+  const idToken = window.xfitToken ? await window.xfitToken() : "";
   const r = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(Object.assign({ pw }, params))
+    body: JSON.stringify(Object.assign({ idToken }, params))
   });
   return r.json();
 }
@@ -286,9 +290,8 @@ async function login(silent) {
   $("#loginBtn").disabled = true;
   try {
     const r = await api({ action: "adminInfo" });
-    if (!r.ok) { sessionStorage.removeItem("xfit_pw"); if (!silent) setMsg(m, r.error === "denied" ? "الإيميل صح بس كلمة السر لازم تكون نفسها كلمة سر السكربت (ADMIN_PASSWORD)" : errText(r.error), "err"); return; }
+    if (!r.ok) { if (!silent) setMsg(m, errText(r.error), "err"); return; }
     info = r;
-    try { sessionStorage.setItem("xfit_pw", pw); } catch (e) {}
     $("#login").hidden = true; $("#panel").hidden = false;
     loadCfg(); fillForm(); renderList(); renderAll(); if (window.xfitLoadBk) window.xfitLoadBk();
   } catch (e) {
@@ -312,7 +315,7 @@ $("#loginBtn").onclick = async () => {
   $("#loginBtn").disabled = true; setMsg(m, "...");
   const code = await window.xfitSignIn(email, pass);
   if (code) { $("#loginBtn").disabled = false; return setMsg(m, FB_ERR[code] || "صار خطأ، جرّبي مرة ثانية", "err"); }
-  pw = pass; fbOk = true; login(false);
+  fbOk = true; login(false);
 };
 ["#pw", "#em"].forEach(id => $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("#loginBtn").click(); }));
 $("#logout").onclick = async () => {
@@ -321,7 +324,7 @@ $("#logout").onclick = async () => {
   location.reload();
 };
 /* called by the Firebase module when a saved sign-in is found */
-window.xfitResume = () => { try { const s = sessionStorage.getItem("xfit_pw"); if (s) { pw = s; fbOk = true; login(true); } } catch (e) {} };
+window.xfitResume = () => { fbOk = true; login(true); };
 
 /* ---------- navigation ---------- */
 $("#nav").addEventListener("click", e => {
@@ -648,6 +651,7 @@ window.xfitSignIn = async (email, pass) => {
   catch (e) { return e.code || "error"; }
 };
 window.xfitSignOut = () => signOut(auth);
+window.xfitToken = async () => auth.currentUser ? auth.currentUser.getIdToken() : "";
 onAuthStateChanged(auth, u => { if (u && window.xfitResume) window.xfitResume(); });
 
 /* ---------- المشتركات ---------- */

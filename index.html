@@ -194,13 +194,7 @@ html.gate body{display:none}
 </section>
 
 <section class="view" id="adm" dir="rtl">
-  <div class="sec-t">⚙️ الحجوزات (أدمن)</div>
-  <input type="date" id="adDate" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:12px;font:inherit;margin-bottom:8px">
-  <select id="adCoach" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:12px;font:inherit;margin-bottom:8px"><option value="">كل الكوتشات</option></select>
-  <button class="btn" id="adCopy" type="button" style="width:100%;margin-top:0">نسخ القائمة (للكوتش)</button>
-  <div class="meta" id="adSum" style="margin:8px 2px;color:var(--mute);font-size:13px"></div>
-  <div id="adList"></div>
-  <a class="btn alt" href="admin.html" style="display:block;text-align:center;margin-top:14px">فتح لوحة الإدارة الكاملة (الجدول، الكوتشات، المشتركات...)</a>
+  <iframe id="admFrame" data-src="admin.html?embed=1" title="Admin" style="display:block;width:100%;height:calc(100vh - 150px);height:calc(100dvh - 150px);min-height:480px;border:0;background:transparent"></iframe>
 </section>
 
 <div class="modal" id="modal"><div class="sheet">
@@ -804,86 +798,20 @@ async function checkCoach(u) {
 }
 
 /* ----- تبويب الأدمن: بيظهر بس لإيميل الأدمن (السيرفر بيتأكد من التوكن) ----- */
-let adData = null, adPhoneToUid = null;
-const last9 = x => String(x || "").replace(/\D/g, "").slice(-9);
-function adEmpty(t) { const p = document.createElement("div"); p.className = "empty"; p.textContent = t; return p; }
-async function adLoad() {
-  const box = document.querySelector("#adList"); box.replaceChildren();
-  try {
-    const r = await coApi("ownerBookings", { date: document.querySelector("#adDate").value });
-    if (!r.ok) { box.appendChild(adEmpty("ما قدرت أحمّل الحجوزات، تأكد من التاريخ")); return; }
-    adData = r;
-    const sel = document.querySelector("#adCoach"), keep = sel.value, coaches = [...new Set(r.classes.map(c => c.coach))];
-    sel.replaceChildren(...[["", "كل الكوتشات"]].concat(coaches.map(c => [c, c])).map(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; return o; }));
-    sel.value = coaches.indexOf(keep) >= 0 ? keep : "";
-    adRender();
-  } catch (e) { box.appendChild(adEmpty("ما في اتصال، جرّب مرة ثانية")); }
-}
-const adFiltered = () => adData ? adData.classes.filter(c => !document.querySelector("#adCoach").value || c.coach === document.querySelector("#adCoach").value) : [];
-function adText(c) {
-  const l = [c.cls + " " + c.time + " (" + adData.day + " " + adData.date + ") - " + c.coach, "العدد: " + c.bookings.length + "/" + c.max];
-  c.bookings.forEach((b, i) => l.push((i + 1) + ". " + b.name + " - " + b.phone));
-  return l.join("\n");
-}
-function adCopy(t, btn) {
-  const done = () => { const o = btn.textContent; btn.textContent = "تم النسخ ✓"; setTimeout(() => btn.textContent = o, 1500); };
-  if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, () => prompt("انسخ:", t)); else prompt("انسخ:", t);
-}
-function adRender() {
-  const box = document.querySelector("#adList"); box.replaceChildren();
-  const list = adFiltered(), total = list.reduce((n, c) => n + c.bookings.length, 0);
-  document.querySelector("#adSum").textContent = adData ? adData.day + " · " + list.length + " حصة · " + total + " حجز" : "";
-  if (!list.length) { box.appendChild(adEmpty("ما في حصص بهالتاريخ")); return; }
-  list.forEach(c => {
-    const card = document.createElement("div"); card.className = "cls";
-    const top = document.createElement("div"); top.className = "top";
-    const nm = document.createElement("span"); nm.className = "name"; nm.textContent = c.cls + " · " + c.time;
-    const bd = document.createElement("span"); bd.className = "badge"; bd.textContent = c.cancelled ? "ملغاة" : c.bookings.length + "/" + c.max;
-    top.append(nm, bd); card.appendChild(top);
-    const meta = document.createElement("div"); meta.className = "meta"; meta.textContent = "👩‍🏫 " + c.coach; card.appendChild(meta);
-    if (!c.bookings.length) { const m2 = document.createElement("div"); m2.className = "meta"; m2.textContent = "ما في حجوزات"; card.appendChild(m2); }
-    c.bookings.forEach((b, i) => {
-      const row = document.createElement("div"); row.style.cssText = "display:flex;gap:8px;align-items:center;margin-top:6px";
-      const n = document.createElement("span"); n.style.flex = "1"; n.textContent = (i + 1) + ". " + b.name;
-      const ph = document.createElement("span"); ph.dir = "ltr"; ph.style.cssText = "color:var(--mute);font-size:12px"; ph.textContent = b.phone;
-      const x = document.createElement("button"); x.type = "button"; x.className = "btn alt"; x.style.cssText = "margin:0;padding:6px 10px;font-size:12px"; x.textContent = "إلغاء";
-      x.onclick = () => adRemove(c, b, x);
-      row.append(n, ph, x); card.appendChild(row);
-    });
-    if (c.bookings.length) { const cp = document.createElement("button"); cp.type = "button"; cp.className = "btn alt"; cp.textContent = "نسخ قائمة هالحصة"; cp.onclick = () => adCopy(adText(c), cp); card.appendChild(cp); }
-    box.appendChild(card);
-  });
-}
-async function adDropMirror(key, phone) {
-  try {
-    if (!adPhoneToUid) { const us = await getDocs(collection(db, "users")); adPhoneToUid = {}; us.forEach(d => { const p = last9(d.data().phone); if (p) adPhoneToUid[p] = d.id; }); }
-    const uid = adPhoneToUid[last9(phone)];
-    if (uid) await deleteDoc(doc(db, "users", uid, "bookings", key.replace(/[\/|]/g, "_")));
-  } catch (e) {}
-}
-async function adRemove(c, b, btn) {
-  if (!confirm("إلغاء حجز " + b.name + " من " + c.cls + " " + c.time + "؟")) return;
-  btn.disabled = true;
-  try {
-    const r = await coApi("ownerRemove", { key: c.key, phone: b.phone });
-    if (!r.ok && r.error !== "notfound") { alert("ما انلغى الحجز، جرّب مرة ثانية"); btn.disabled = false; return; }
-    await adDropMirror(c.key, b.phone);
-  } catch (e) { alert("ما في اتصال، جرّب مرة ثانية"); btn.disabled = false; return; }
-  adLoad();
-}
-document.querySelector("#adDate").value = fd(new Date());
-document.querySelector("#adDate").onchange = adLoad;
-document.querySelector("#adCoach").onchange = adRender;
-document.querySelector("#adCopy").onclick = () => { if (!adData) return; const t = adFiltered().filter(c => c.bookings.length).map(adText).join("\n\n"); adCopy(t || "ما في حجوزات", document.querySelector("#adCopy")); };
-document.addEventListener("click", e => { if (e.target.closest("#navAdmin")) adLoad(); });
 async function checkOwner(u) {
   document.querySelector("#navAdmin").style.display = "none";
   try {
     const key = "xfit_owner_" + u.uid; let o = sessionStorage.getItem(key);
-    if (o === null) { const r = await coApi("ownerWho"); o = r && r.ok ? "1" : ""; sessionStorage.setItem(key, o); }
+    if (o === null) {
+      let r = null;
+      for (let i = 0; i < 2 && !r; i++) { try { r = await coApi("ownerWho"); } catch (e) { r = null; } if (!r && i === 0) await new Promise(f => setTimeout(f, 1200)); }
+      if (r && r.ok) { o = "1"; sessionStorage.setItem(key, o); }
+      else if (r && r.error === "denied") { o = ""; sessionStorage.setItem(key, o); }
+      else o = "";
+    }
     if (!o) return;
     document.querySelector("#navAdmin").style.display = "";
-    adLoad();
+    const f = document.querySelector("#admFrame"); if (f && !f.getAttribute("src")) f.src = f.dataset.src;   /* لوحة الإدارة الكاملة جوّا التبويب */
     if (!sessionStorage.getItem("xfit_ad_open")) { sessionStorage.setItem("xfit_ad_open", "1"); go("adm"); }
   } catch (e) {}
 }
