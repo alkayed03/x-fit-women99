@@ -727,10 +727,13 @@ function coDays() {
   }
   box.replaceChildren(...out);
 }
+let coSeq = 0;
 async function coLoad() {
   const box = document.querySelector("#coList"); box.replaceChildren();
+  const my = ++coSeq;   /* لو انطلب تحميل ثاني قبل ما يخلص هاد، بنتجاهل نتيجة الأقدم (عشان ما تتكرر الحصص) */
   try {
     const r = await coApi("coachBookings", { date: coDate });
+    if (my !== coSeq) return;
     if (!r.ok) { const p = document.createElement("div"); p.className = "empty"; p.textContent = "ما قدرت أحمّل الحصص، جرّبي مرة ثانية"; box.appendChild(p); return; }
     if (!r.classes.length) { const p = document.createElement("div"); p.className = "empty"; p.textContent = "ما عندك حصص بهاليوم (" + r.day + ")"; box.appendChild(p); return; }
     r.classes.forEach(c => {
@@ -744,7 +747,7 @@ async function coLoad() {
       else c.names.forEach((n, i) => { const l = document.createElement("div"); l.textContent = (i + 1) + ". " + n; meta.appendChild(l); });
       card.appendChild(meta); box.appendChild(card);
     });
-  } catch (e) { const p = document.createElement("div"); p.className = "empty"; p.textContent = "ما في اتصال، جرّبي مرة ثانية"; box.appendChild(p); }
+  } catch (e) { if (my !== coSeq) return; const p = document.createElement("div"); p.className = "empty"; p.textContent = "ما في اتصال، جرّبي مرة ثانية"; box.appendChild(p); }
 }
 document.addEventListener("click", e => {
   const d = e.target.closest("[data-cd]"); if (d) { coDate = d.dataset.cd; coDays(); coLoad(); return; }
