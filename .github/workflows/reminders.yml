@@ -26,5 +26,5 @@ jobs:
         run: node send-reminders.js
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          VAPID_PUBLIC_KEY: BAgccey0B95wjcQYuBVnsAqADYDvT-BiTvrev-bpW1k61WHtqutfoZporuC9r3opCGR5x6DulNbIdgfbkzosFwk
+          VAPID_PUBLIC_KEY: BEzY1cgRGxtpFcishvpIP_BPpDOmCe3E1_6bC-RwmA5qLpZ6js6QX0mtn2gNialh09hUNN7VYgA7kR-45NaiVBk
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
