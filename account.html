@@ -33,7 +33,7 @@ button.ghost{background:transparent;color:var(--pink);border:1px solid var(--pin
 </head>
 <body>
 <div class="wrap">
-  <h1><span>حسابي</span><a href="./">← الرئيسية</a></h1>
+  <h1><span>حسابي</span><a id="homeLink" href="./" hidden>← الرئيسية</a></h1>
 
   <section id="auth" class="card" hidden>
     <div class="tabs"><button id="tLogin" type="button">دخول</button><button id="tReg" type="button" class="ghost">حساب جديد</button></div>
@@ -105,6 +105,7 @@ $("#go").onclick = async () => {
       const c = await createUserWithEmailAndPassword(auth, email, pw);
       await setDoc(doc(db, "users", c.user.uid), { name, phone, email: c.user.email, createdAt: serverTimestamp() });
     } else await signInWithEmailAndPassword(auth, email, pw);
+    location.replace("./"); return;
   } catch (e) { say(m, ERR[e.code] || "صار خطأ، جرّبي مرة ثانية", "err"); }
   finally { $("#go").disabled = false; }
 };
@@ -148,7 +149,7 @@ $("#save").onclick = async () => {
   catch (e) { say(m, "ما انحفظ، جرّبي مرة ثانية", "err"); }
 };
 onAuthStateChanged(auth, u => {
-  $("#auth").hidden = !!u; $("#me").hidden = !u;
+  $("#auth").hidden = !!u; $("#me").hidden = !u; $("#homeLink").hidden = !u;
   if (u) load(u).catch(() => { $("#subInfo").textContent = "تعذّر تحميل البيانات، جرّبي مرة ثانية"; });
 });
 mode(false);

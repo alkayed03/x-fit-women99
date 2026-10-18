@@ -108,12 +108,13 @@ nav button.on{color:var(--pink);font-weight:700}
 .rv-thanks{font-size:22px;font-weight:800;color:var(--pink);margin:8px 0}
 .rv-conf{position:absolute;top:-20px;font-size:20px;animation:rvFall 2.4s ease-in forwards;pointer-events:none}
 @keyframes rvFall{to{transform:translateY(420px) rotate(360deg);opacity:0}}
+html.gate body{display:none}
 </style>
+<script>document.documentElement.classList.add("gate")</script>
 </head>
 <body>
 <header class="top">
   <div class="logo-t">XFIT GYM</div>
-  <a id="accLink" href="account.html" style="margin-inline-start:auto;margin-inline-end:8px;text-decoration:none;font-size:20px" aria-label="حسابي">👤</a>
   <button id="langBtn" type="button"></button>
 </header>
 
@@ -557,8 +558,10 @@ function renderPrivate() {
 }
 new MutationObserver(renderPrivate).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
 onAuthStateChanged(auth, async u => {
+  /* الصفحة بس للمسجّلات: بدون حساب بنحوّل على صفحة إنشاء الحساب / الدخول */
+  if (!u) { location.replace("account.html"); return; }
+  document.documentElement.classList.remove("gate");
   user = u; myMem = null; renderPrivate();
-  if (!u) return;
   try { const s = await getDoc(doc(db, "memberships", u.uid)); myMem = s.exists() ? s.data() : null; renderPrivate(); } catch (e) {}
 });
 window.xfitOnBooked = async b => {
