@@ -47,6 +47,24 @@ button.sm{padding:8px 10px;font-size:13px}
 .chrow b{font-size:13px}
 .chrow input{margin-top:4px}
 .plan{border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:12px}
+
+/* ---- المشتركات ---- */
+textarea{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:12px;font:inherit;background:#fff;min-height:100px;resize:vertical;line-height:1.7}
+.mute{color:var(--mute);font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
+.chip{background:transparent;color:var(--pink);border:1px solid var(--pink);padding:6px 12px;font-size:13px;border-radius:20px}
+.chip[aria-pressed="true"]{background:var(--pink);color:#fff}
+.mrow{display:block;width:100%;text-align:start;background:#fff;color:#222;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px;font-weight:400}
+.mrow:hover{border-color:var(--pink)}
+.mrow b{display:block;font-size:16px}
+.mrow .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;align-items:center;font-size:13px;color:var(--mute)}
+.tag{background:var(--pink-l);color:var(--pink);border-radius:20px;padding:2px 10px;font-weight:700;font-size:12px}
+.tag.x{background:transparent;border:1px solid var(--line);color:var(--mute)}
+.tag.bad{color:#d33;border:1px solid #d33;background:transparent}
+.count{font-size:13px;color:var(--mute);margin:8px 2px}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--bg);color:#222;width:min(520px,94vw);max-height:92vh;padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.acts{display:flex;gap:8px;margin-top:14px}.acts button{flex:1}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -55,8 +73,10 @@ button.sm{padding:8px 10px;font-size:13px}
   <h1>لوحة الأدمن · Xfit Gym</h1>
 
   <section id="login" class="card">
+    <label for="em">الإيميل</label>
+    <input type="email" id="em" dir="ltr" autocomplete="username">
     <label for="pw">كلمة السر</label>
-    <input type="password" id="pw" autocomplete="current-password">
+    <input type="password" id="pw" dir="ltr" autocomplete="current-password">
     <p id="loginMsg" class="msg"></p>
     <button id="loginBtn" class="full">دخول</button>
   </section>
@@ -67,7 +87,7 @@ button.sm{padding:8px 10px;font-size:13px}
       <button data-p="pSched" type="button">الجدول</button>
       <button data-p="pCoach" type="button">الكوتشات</button>
       <button data-p="pEx" type="button">التمارين</button>
-      <a href="members.html" style="flex:1;min-width:70px;text-align:center;text-decoration:none;background:#fff;color:#e0457b;border:1px solid #e0457b;border-radius:12px;padding:9px 6px;font-size:14px;font-weight:700">المشتركات</a>
+      <button data-p="pMem" type="button">المشتركات</button>
     </div>
 
     <!-- ===== إلغاء ===== -->
@@ -134,6 +154,24 @@ button.sm{padding:8px 10px;font-size:13px}
     </div>
 
     <!-- ===== التمارين ===== -->
+    <!-- ===== المشتركات ===== -->
+    <div id="pMem" hidden>
+    <div class="card">
+      <label for="mq" style="margin-top:0">بحث بالاسم أو الرقم أو الإيميل</label>
+      <input id="mq" type="search" autocomplete="off">
+      <div class="chips" id="mchips">
+        <button class="chip" type="button" data-f="all" aria-pressed="true">الكل</button>
+        <button class="chip" type="button" data-f="private" aria-pressed="false">برايفت</button>
+        <button class="chip" type="button" data-f="sched" aria-pressed="false">عندها جدول</button>
+        <button class="chip" type="button" data-f="nut" aria-pressed="false">عندها تغذية</button>
+        <button class="chip" type="button" data-f="expired" aria-pressed="false">منتهي</button>
+        <button class="chip" type="button" data-f="none" aria-pressed="false">بدون اشتراك</button>
+      </div>
+      <p id="mcount" class="count"></p>
+    </div>
+    <div id="mlist"></div>
+    </div>
+
     <div id="pEx" hidden>
       <div class="card">
         <h2>التحدي اليومي</h2>
@@ -155,6 +193,23 @@ button.sm{padding:8px 10px;font-size:13px}
   </section>
 </div>
 
+<dialog id="dlg">
+  <h2 id="dName"></h2>
+  <p id="dInfo" class="mute" dir="auto"></p>
+  <label for="fType">نوع الاشتراك</label>
+  <select id="fType"><option value="group">جروب</option><option value="private">برايفت 💎</option></select>
+  <label for="fEnd">تاريخ الانتهاء</label>
+  <input id="fEnd" type="date" dir="ltr">
+  <label for="fSched">الجدول الخاص (برايفت)</label>
+  <textarea id="fSched"></textarea>
+  <label for="fNut">خطة التغذية (برايفت)</label>
+  <textarea id="fNut"></textarea>
+  <label for="fNote">ملاحظات من الكوتش</label>
+  <textarea id="fNote"></textarea>
+  <p id="dmsg" class="msg"></p>
+  <div class="acts"><button id="dSave" type="button">حفظ</button><button id="dClose" class="ghost" type="button">إغلاق</button></div>
+</dialog>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbw-CU9BPCb0h5ppU46K8qo9AxjSPgMyTE0iCF0gCzbX3KbtZCDkmwIGcSMeF8OXP2rP/exec";
 const DAYS = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
@@ -169,7 +224,7 @@ const DEFAULT_CH = {
 };
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
-let pw = "", info = null, mode = "coach", cfg = null, sd = ORDER[0];
+let pw = "", fbOk = false, info = null, mode = "coach", cfg = null, sd = ORDER[0];
 
 const ERR = {
   denied: "كلمة السر غلط",
@@ -215,7 +270,7 @@ async function login(silent) {
   $("#loginBtn").disabled = true;
   try {
     const r = await api({ action: "adminInfo" });
-    if (!r.ok) { sessionStorage.removeItem("xfit_pw"); if (!silent) setMsg(m, errText(r.error), "err"); return; }
+    if (!r.ok) { sessionStorage.removeItem("xfit_pw"); if (!silent) setMsg(m, r.error === "denied" ? "الإيميل صح بس كلمة السر لازم تكون نفسها كلمة سر السكربت (ADMIN_PASSWORD)" : errText(r.error), "err"); return; }
     info = r;
     try { sessionStorage.setItem("xfit_pw", pw); } catch (e) {}
     $("#login").hidden = true; $("#panel").hidden = false;
@@ -224,15 +279,39 @@ async function login(silent) {
     if (!silent) setMsg(m, "ما في اتصال، جرّبي مرة ثانية", "err");
   } finally { $("#loginBtn").disabled = false; }
 }
-$("#loginBtn").onclick = () => { pw = $("#pw").value; if (pw) login(false); };
-$("#pw").addEventListener("keydown", e => { if (e.key === "Enter") $("#loginBtn").click(); });
-$("#logout").onclick = () => { try { sessionStorage.removeItem("xfit_pw"); } catch (e) {} location.reload(); };
+/* One login for everything: Firebase (email + password) opens the members page,
+   and the same password is checked by the Apps Script for the admin actions. */
+const FB_ERR = {
+  "auth/invalid-credential": "الإيميل أو كلمة السر غلط",
+  "auth/wrong-password": "الإيميل أو كلمة السر غلط",
+  "auth/user-not-found": "الإيميل أو كلمة السر غلط",
+  "auth/invalid-email": "الإيميل غير صحيح",
+  "auth/too-many-requests": "محاولات كثيرة، جرّبي بعد شوي",
+  "auth/network-request-failed": "ما في اتصال، جرّبي مرة ثانية"
+};
+$("#loginBtn").onclick = async () => {
+  const email = $("#em").value.trim(), pass = $("#pw").value, m = $("#loginMsg");
+  if (!email || !pass) return setMsg(m, "اكتبي الإيميل وكلمة السر", "err");
+  if (!window.xfitSignIn) return setMsg(m, "لحظة، الصفحة لسا عم تحمّل...", "err");
+  $("#loginBtn").disabled = true; setMsg(m, "...");
+  const code = await window.xfitSignIn(email, pass);
+  if (code) { $("#loginBtn").disabled = false; return setMsg(m, FB_ERR[code] || "صار خطأ، جرّبي مرة ثانية", "err"); }
+  pw = pass; fbOk = true; login(false);
+};
+["#pw", "#em"].forEach(id => $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("#loginBtn").click(); }));
+$("#logout").onclick = async () => {
+  try { sessionStorage.removeItem("xfit_pw"); } catch (e) {}
+  try { if (window.xfitSignOut) await window.xfitSignOut(); } catch (e) {}
+  location.reload();
+};
+/* called by the Firebase module when a saved sign-in is found */
+window.xfitResume = () => { try { const s = sessionStorage.getItem("xfit_pw"); if (s) { pw = s; fbOk = true; login(true); } } catch (e) {} };
 
 /* ---------- navigation ---------- */
 $("#nav").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("on", x === b));
-  ["pCancel","pSched","pCoach","pEx"].forEach(id => $("#" + id).hidden = id !== b.dataset.p);
+  ["pCancel","pSched","pCoach","pEx","pMem"].forEach(id => $("#" + id).hidden = id !== b.dataset.p);
 });
 
 /* ---------- config (draft) ---------- */
@@ -541,7 +620,115 @@ function renderList() {
   }));
 }
 
-try { const s = sessionStorage.getItem("xfit_pw"); if (s) { pw = s; login(true); } } catch (e) {}
+</script>
+<script type="module">
+import { auth, db, onAuthStateChanged, signInWithEmailAndPassword, signOut,
+  doc, setDoc, collection, getDocs, serverTimestamp } from "./xfit-firebase.js";
+const $ = s => document.querySelector(s);
+const say = (n, t, k) => { n.textContent = t || ""; n.className = "msg " + (k || ""); };
+window.xfitSignIn = async (email, pass) => {
+  try { await signInWithEmailAndPassword(auth, email, pass); return null; }
+  catch (e) { return e.code || "error"; }
+};
+window.xfitSignOut = () => signOut(auth);
+onAuthStateChanged(auth, u => { if (u && window.xfitResume) window.xfitResume(); });
+
+/* ---------- المشتركات ---------- */
+const today = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+
+let members = [], filter = "all", current = null;
+
+
+async function load() {
+  const list = $("#mlist");
+  list.replaceChildren(); $("#mcount").textContent = "جاري التحميل...";
+  try {
+    const [us, ms] = await Promise.all([getDocs(collection(db, "users")), getDocs(collection(db, "memberships"))]);
+    const mm = {}; ms.forEach(d => mm[d.id] = d.data());
+    members = us.docs.map(d => ({ uid: d.id, u: d.data(), m: mm[d.id] || null }))
+      .sort((a, b) => String(a.u.name || "").localeCompare(String(b.u.name || ""), "ar"));
+    render();
+    $("#mcount").textContent += " | " + (auth.currentUser && auth.currentUser.email) + " | users:" + us.size + " memberships:" + ms.size;
+  } catch (e) {
+    $("#mcount").textContent = (auth.currentUser && auth.currentUser.email) + " | " + (e.code || e.message);
+    const p = document.createElement("p"); p.className = "msg err";
+    p.textContent = "ما قدرت أحمّل البيانات. تأكدي إنك داخلة بإيميل الأدمن وإنه قواعد Firestore منشورة.";
+    list.appendChild(p);
+  }
+}
+
+function tag(text, cls) { const s = document.createElement("span"); s.className = "tag " + (cls || ""); s.textContent = text; return s; }
+
+function render() {
+  const q = $("#mq").value.trim().toLowerCase(), t = today();
+  const rows = members.filter(x => {
+    const m = x.m, expired = m && m.end && m.end < t;
+    if (filter === "private" && !(m && m.type === "private")) return false;
+    if (filter === "sched" && !(m && m.schedule)) return false;
+    if (filter === "nut" && !(m && m.nutrition)) return false;
+    if (filter === "expired" && !expired) return false;
+    if (filter === "none" && m) return false;
+    if (!q) return true;
+    return [x.u.name, x.u.phone, x.u.email].some(v => String(v || "").toLowerCase().includes(q));
+  });
+  $("#mcount").textContent = rows.length + " من " + members.length + " مشتركة";
+  const list = $("#mlist"); list.replaceChildren();
+  if (!rows.length) { const p = document.createElement("p"); p.className = "mute"; p.textContent = "ما في نتائج. جرّبي بحث أو فلتر ثاني."; list.appendChild(p); return; }
+  rows.forEach(x => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "mrow";
+    const n = document.createElement("b"); n.textContent = x.u.name || "(بدون اسم)";
+    const meta = document.createElement("div"); meta.className = "meta";
+    const ph = document.createElement("span"); ph.dir = "ltr"; ph.textContent = x.u.phone || "";
+    meta.appendChild(ph);
+    const m = x.m;
+    if (!m) meta.appendChild(tag("بدون اشتراك", "x"));
+    else {
+      meta.appendChild(tag(m.type === "private" ? "برايفت 💎" : "جروب"));
+      if (m.end) meta.appendChild(m.end < t ? tag("انتهى " + m.end, "bad") : tag("حتى " + m.end, "x"));
+      if (m.schedule) meta.appendChild(tag("جدول", "x"));
+      if (m.nutrition) meta.appendChild(tag("تغذية", "x"));
+    }
+    b.append(n, meta); b.onclick = () => openEditor(x); list.appendChild(b);
+  });
+}
+
+function openEditor(x) {
+  current = x; const m = x.m || {};
+  $("#dName").textContent = x.u.name || "(بدون اسم)";
+  $("#dInfo").textContent = [x.u.phone, x.u.email].filter(Boolean).join(" · ");
+  $("#fType").value = m.type === "private" ? "private" : "group";
+  $("#fEnd").value = m.end || "";
+  $("#fSched").value = m.schedule || "";
+  $("#fNut").value = m.nutrition || "";
+  $("#fNote").value = m.note || "";
+  say($("#dmsg")); $("#dlg").showModal();
+}
+$("#dClose").onclick = () => $("#dlg").close();
+$("#dSave").onclick = async () => {
+  const m = $("#dmsg"); if (!current) return;
+  const data = {
+    type: $("#fType").value, end: $("#fEnd").value,
+    schedule: $("#fSched").value.trim(), nutrition: $("#fNut").value.trim(), note: $("#fNote").value.trim(),
+    updatedAt: serverTimestamp()
+  };
+  $("#dSave").disabled = true; say(m, "...");
+  try {
+    await setDoc(doc(db, "memberships", current.uid), data, { merge: true });
+    current.m = { ...(current.m || {}), ...data };
+    say(m, "✅ انحفظ", "ok"); render();
+    setTimeout(() => $("#dlg").close(), 600);
+  } catch (e) { say(m, "ما انحفظ. تأكدي من القواعد وجرّبي مرة ثانية", "err"); }
+  finally { $("#dSave").disabled = false; }
+};
+
+$("#mq").oninput = render;
+$("#mchips").onclick = e => {
+  const b = e.target.closest("[data-f]"); if (!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll("#mchips .chip").forEach(c => c.setAttribute("aria-pressed", String(c === b)));
+  render();
+};
+document.querySelector('#nav [data-p="pMem"]').addEventListener("click", () => { if (auth.currentUser) load(); });
 </script>
 </body>
 </html>
