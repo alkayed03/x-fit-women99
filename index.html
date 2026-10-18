@@ -187,6 +187,22 @@ html.gate body{display:none}
   <div id="rvPanel"></div>
 </section>
 
+<section class="view" id="coach" dir="rtl">
+  <div class="sec-t" id="coName"></div>
+  <div class="days" id="coDays"></div>
+  <div id="coList"></div>
+</section>
+
+<section class="view" id="adm" dir="rtl">
+  <div class="sec-t">⚙️ الحجوزات (أدمن)</div>
+  <input type="date" id="adDate" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:12px;font:inherit;margin-bottom:8px">
+  <select id="adCoach" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:12px;font:inherit;margin-bottom:8px"><option value="">كل الكوتشات</option></select>
+  <button class="btn" id="adCopy" type="button" style="width:100%;margin-top:0">نسخ القائمة (للكوتش)</button>
+  <div class="meta" id="adSum" style="margin:8px 2px;color:var(--mute);font-size:13px"></div>
+  <div id="adList"></div>
+  <a class="btn alt" href="admin.html" style="display:block;text-align:center;margin-top:14px">فتح لوحة الإدارة الكاملة (الجدول، الكوتشات، المشتركات...)</a>
+</section>
+
 <div class="modal" id="modal"><div class="sheet">
   <h3 id="mTitle"></h3><div id="mSub" style="color:var(--mute);font-size:13px"></div>
   <div id="mWho" class="who" style="display:none"></div>
@@ -205,6 +221,8 @@ html.gate body{display:none}
   <button data-go="workout"><span class="ic">💪</span><span data-i="nWorkout"></span></button>
   <button data-go="nutrition"><span class="ic">🍎</span><span data-i="tNutrition"></span></button>
   <button data-go="rate"><span class="ic">⭐</span><span data-i="nRate"></span></button>
+  <button data-go="coach" id="navCoach" style="display:none"><span class="ic">👩‍🏫</span><span>حصصي</span></button>
+  <button data-go="adm" id="navAdmin" style="display:none"><span class="ic">⚙️</span><span>الأدمن</span></button>
 </nav>
 
 <script>
@@ -683,11 +701,152 @@ onAuthStateChanged(auth, async u => {
   /* الصفحة بس للمسجّلات: بدون حساب بنحوّل على صفحة إنشاء الحساب / الدخول */
   if (!u) { location.replace("account.html"); return; }
   document.documentElement.classList.remove("gate");
+  checkCoach(u); checkOwner(u);
   user = u; myMem = null; renderPrivate();
   try { const pr = await getDoc(doc(db, "users", u.uid)); window.xfitProfile = pr.exists() ? { name: pr.data().name || "", phone: pr.data().phone || "" } : null; } catch (e) {}
   try { const s = await getDoc(doc(db, "memberships", u.uid)); myMem = s.exists() ? s.data() : null; renderPrivate(); } catch (e) {}
   try { const q = await getDocs(collection(db, "users", u.uid, "bookings")); if (window.xfitAddMy) window.xfitAddMy(q.docs.filter(d => !d.data().cancelled).map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; })); await syncPush(); } catch (e) {}
 });
+
+/* ----- تبويب الكوتش: بيظهر بس إذا الحساب إيميل كوتش (السيرفر هو اللي بقرر) ----- */
+const pad2 = n => String(n).padStart(2, "0"), fd = d => d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+let coDate = fd(new Date());
+async function coApi(action, extra) {
+  const idToken = await auth.currentUser.getIdToken();
+  const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(Object.assign({ action, idToken }, extra || {})) });
+  return res.json();
+}
+function coDays() {
+  const box = document.querySelector("#coDays"), out = [];
+  for (let i = 0; i < 8; i++) {
+    const d = new Date(); d.setDate(d.getDate() + i);
+    const k = fd(d), b = document.createElement("button");
+    b.type = "button"; b.className = "day" + (k === coDate ? " on" : ""); b.dataset.cd = k;
+    b.textContent = d.toLocaleDateString("ar-JO", { weekday: "short", day: "numeric" });
+    out.push(b);
+  }
+  box.replaceChildren(...out);
+}
+async function coLoad() {
+  const box = document.querySelector("#coList"); box.replaceChildren();
+  try {
+    const r = await coApi("coachBookings", { date: coDate });
+    if (!r.ok) { const p = document.createElement("div"); p.className = "empty"; p.textContent = "ما قدرت أحمّل الحصص، جرّبي مرة ثانية"; box.appendChild(p); return; }
+    if (!r.classes.length) { const p = document.createElement("div"); p.className = "empty"; p.textContent = "ما عندك حصص بهاليوم (" + r.day + ")"; box.appendChild(p); return; }
+    r.classes.forEach(c => {
+      const card = document.createElement("div"); card.className = "cls";
+      const top = document.createElement("div"); top.className = "top";
+      const nm = document.createElement("span"); nm.className = "name"; nm.textContent = c.cls + " · " + c.time;
+      const bd = document.createElement("span"); bd.className = "badge"; bd.textContent = c.cancelled ? "ملغاة" : c.names.length + "/" + c.max;
+      top.append(nm, bd); card.appendChild(top);
+      const meta = document.createElement("div"); meta.className = "meta";
+      if (!c.names.length) meta.textContent = "ما في حجوزات لسا";
+      else c.names.forEach((n, i) => { const l = document.createElement("div"); l.textContent = (i + 1) + ". " + n; meta.appendChild(l); });
+      card.appendChild(meta); box.appendChild(card);
+    });
+  } catch (e) { const p = document.createElement("div"); p.className = "empty"; p.textContent = "ما في اتصال، جرّبي مرة ثانية"; box.appendChild(p); }
+}
+document.addEventListener("click", e => {
+  const d = e.target.closest("[data-cd]"); if (d) { coDate = d.dataset.cd; coDays(); coLoad(); return; }
+  if (e.target.closest("#navCoach")) { coDays(); coLoad(); }
+});
+async function checkCoach(u) {
+  document.querySelector("#navCoach").style.display = "none";
+  try {
+    const key = "xfit_coach_" + u.uid; let c = sessionStorage.getItem(key);
+    if (c === null) { const r = await coApi("coachWho"); c = r && r.ok ? r.coach : ""; sessionStorage.setItem(key, c); }
+    if (!c) return;
+    document.querySelector("#coName").textContent = "أهلاً " + c + " 👋 هاي حصصك والمتدربات";
+    document.querySelector("#navCoach").style.display = "";
+    coDays(); coLoad();
+    if (!sessionStorage.getItem("xfit_co_open")) { sessionStorage.setItem("xfit_co_open", "1"); go("coach"); }
+  } catch (e) {}
+}
+
+/* ----- تبويب الأدمن: بيظهر بس لإيميل الأدمن (السيرفر بيتأكد من التوكن) ----- */
+let adData = null, adPhoneToUid = null;
+const last9 = x => String(x || "").replace(/\D/g, "").slice(-9);
+function adEmpty(t) { const p = document.createElement("div"); p.className = "empty"; p.textContent = t; return p; }
+async function adLoad() {
+  const box = document.querySelector("#adList"); box.replaceChildren();
+  try {
+    const r = await coApi("ownerBookings", { date: document.querySelector("#adDate").value });
+    if (!r.ok) { box.appendChild(adEmpty("ما قدرت أحمّل الحجوزات، تأكد من التاريخ")); return; }
+    adData = r;
+    const sel = document.querySelector("#adCoach"), keep = sel.value, coaches = [...new Set(r.classes.map(c => c.coach))];
+    sel.replaceChildren(...[["", "كل الكوتشات"]].concat(coaches.map(c => [c, c])).map(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; return o; }));
+    sel.value = coaches.indexOf(keep) >= 0 ? keep : "";
+    adRender();
+  } catch (e) { box.appendChild(adEmpty("ما في اتصال، جرّب مرة ثانية")); }
+}
+const adFiltered = () => adData ? adData.classes.filter(c => !document.querySelector("#adCoach").value || c.coach === document.querySelector("#adCoach").value) : [];
+function adText(c) {
+  const l = [c.cls + " " + c.time + " (" + adData.day + " " + adData.date + ") - " + c.coach, "العدد: " + c.bookings.length + "/" + c.max];
+  c.bookings.forEach((b, i) => l.push((i + 1) + ". " + b.name + " - " + b.phone));
+  return l.join("\n");
+}
+function adCopy(t, btn) {
+  const done = () => { const o = btn.textContent; btn.textContent = "تم النسخ ✓"; setTimeout(() => btn.textContent = o, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, () => prompt("انسخ:", t)); else prompt("انسخ:", t);
+}
+function adRender() {
+  const box = document.querySelector("#adList"); box.replaceChildren();
+  const list = adFiltered(), total = list.reduce((n, c) => n + c.bookings.length, 0);
+  document.querySelector("#adSum").textContent = adData ? adData.day + " · " + list.length + " حصة · " + total + " حجز" : "";
+  if (!list.length) { box.appendChild(adEmpty("ما في حصص بهالتاريخ")); return; }
+  list.forEach(c => {
+    const card = document.createElement("div"); card.className = "cls";
+    const top = document.createElement("div"); top.className = "top";
+    const nm = document.createElement("span"); nm.className = "name"; nm.textContent = c.cls + " · " + c.time;
+    const bd = document.createElement("span"); bd.className = "badge"; bd.textContent = c.cancelled ? "ملغاة" : c.bookings.length + "/" + c.max;
+    top.append(nm, bd); card.appendChild(top);
+    const meta = document.createElement("div"); meta.className = "meta"; meta.textContent = "👩‍🏫 " + c.coach; card.appendChild(meta);
+    if (!c.bookings.length) { const m2 = document.createElement("div"); m2.className = "meta"; m2.textContent = "ما في حجوزات"; card.appendChild(m2); }
+    c.bookings.forEach((b, i) => {
+      const row = document.createElement("div"); row.style.cssText = "display:flex;gap:8px;align-items:center;margin-top:6px";
+      const n = document.createElement("span"); n.style.flex = "1"; n.textContent = (i + 1) + ". " + b.name;
+      const ph = document.createElement("span"); ph.dir = "ltr"; ph.style.cssText = "color:var(--mute);font-size:12px"; ph.textContent = b.phone;
+      const x = document.createElement("button"); x.type = "button"; x.className = "btn alt"; x.style.cssText = "margin:0;padding:6px 10px;font-size:12px"; x.textContent = "إلغاء";
+      x.onclick = () => adRemove(c, b, x);
+      row.append(n, ph, x); card.appendChild(row);
+    });
+    if (c.bookings.length) { const cp = document.createElement("button"); cp.type = "button"; cp.className = "btn alt"; cp.textContent = "نسخ قائمة هالحصة"; cp.onclick = () => adCopy(adText(c), cp); card.appendChild(cp); }
+    box.appendChild(card);
+  });
+}
+async function adDropMirror(key, phone) {
+  try {
+    if (!adPhoneToUid) { const us = await getDocs(collection(db, "users")); adPhoneToUid = {}; us.forEach(d => { const p = last9(d.data().phone); if (p) adPhoneToUid[p] = d.id; }); }
+    const uid = adPhoneToUid[last9(phone)];
+    if (uid) await deleteDoc(doc(db, "users", uid, "bookings", key.replace(/[\/|]/g, "_")));
+  } catch (e) {}
+}
+async function adRemove(c, b, btn) {
+  if (!confirm("إلغاء حجز " + b.name + " من " + c.cls + " " + c.time + "؟")) return;
+  btn.disabled = true;
+  try {
+    const r = await coApi("ownerRemove", { key: c.key, phone: b.phone });
+    if (!r.ok && r.error !== "notfound") { alert("ما انلغى الحجز، جرّب مرة ثانية"); btn.disabled = false; return; }
+    await adDropMirror(c.key, b.phone);
+  } catch (e) { alert("ما في اتصال، جرّب مرة ثانية"); btn.disabled = false; return; }
+  adLoad();
+}
+document.querySelector("#adDate").value = fd(new Date());
+document.querySelector("#adDate").onchange = adLoad;
+document.querySelector("#adCoach").onchange = adRender;
+document.querySelector("#adCopy").onclick = () => { if (!adData) return; const t = adFiltered().filter(c => c.bookings.length).map(adText).join("\n\n"); adCopy(t || "ما في حجوزات", document.querySelector("#adCopy")); };
+document.addEventListener("click", e => { if (e.target.closest("#navAdmin")) adLoad(); });
+async function checkOwner(u) {
+  document.querySelector("#navAdmin").style.display = "none";
+  try {
+    const key = "xfit_owner_" + u.uid; let o = sessionStorage.getItem(key);
+    if (o === null) { const r = await coApi("ownerWho"); o = r && r.ok ? "1" : ""; sessionStorage.setItem(key, o); }
+    if (!o) return;
+    document.querySelector("#navAdmin").style.display = "";
+    adLoad();
+    if (!sessionStorage.getItem("xfit_ad_open")) { sessionStorage.setItem("xfit_ad_open", "1"); go("adm"); }
+  } catch (e) {}
+}
 window.xfitOnCancelled = async key => {
   if (!user) return;
   const ref = doc(db, "users", user.uid, "bookings", key.replace(/[\/|]/g, "_"));
