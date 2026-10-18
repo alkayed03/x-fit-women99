@@ -83,7 +83,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
   <section id="panel" hidden>
     <div class="tabs" id="nav">
-      <button data-p="pCancel" class="on" type="button">إلغاء حصص</button>
+      <button data-p="pBook" class="on" type="button">الحجوزات</button>
+      <button data-p="pCancel" type="button">إلغاء حصص</button>
       <button data-p="pSched" type="button">الجدول</button>
       <button data-p="pCoach" type="button">الكوتشات</button>
       <button data-p="pEx" type="button">التمارين</button>
@@ -91,7 +92,22 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     </div>
 
     <!-- ===== إلغاء ===== -->
-    <div id="pCancel">
+    <!-- ===== الحجوزات ===== -->
+    <div id="pBook">
+      <div class="card">
+        <h2>مين حاجز بكل حصة</h2>
+        <label for="bkDate">التاريخ</label>
+        <input type="date" id="bkDate">
+        <label for="bkCoach">الكوتش</label>
+        <select id="bkCoach"><option value="">كل الكوتشات</option></select>
+        <button id="bkCopyAll" class="ghost full" type="button" style="margin-top:10px">نسخ القائمة (للكوتش)</button>
+        <p id="bkMsg" class="msg"></p>
+        <p id="bkSum" class="count"></p>
+      </div>
+      <div id="bkList"></div>
+    </div>
+
+    <div id="pCancel" hidden>
       <div class="card">
         <h2>إلغاء حصص</h2>
         <label for="date">التاريخ</label>
@@ -274,7 +290,7 @@ async function login(silent) {
     info = r;
     try { sessionStorage.setItem("xfit_pw", pw); } catch (e) {}
     $("#login").hidden = true; $("#panel").hidden = false;
-    loadCfg(); fillForm(); renderList(); renderAll();
+    loadCfg(); fillForm(); renderList(); renderAll(); if (window.xfitLoadBk) window.xfitLoadBk();
   } catch (e) {
     if (!silent) setMsg(m, "ما في اتصال، جرّبي مرة ثانية", "err");
   } finally { $("#loginBtn").disabled = false; }
@@ -311,7 +327,7 @@ window.xfitResume = () => { try { const s = sessionStorage.getItem("xfit_pw"); i
 $("#nav").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("on", x === b));
-  ["pCancel","pSched","pCoach","pEx","pMem"].forEach(id => $("#" + id).hidden = id !== b.dataset.p);
+  ["pBook","pCancel","pSched","pCoach","pEx","pMem"].forEach(id => $("#" + id).hidden = id !== b.dataset.p);
 });
 
 /* ---------- config (draft) ---------- */
@@ -624,6 +640,7 @@ function renderList() {
 <script type="module">
 import { auth, db, onAuthStateChanged, signInWithEmailAndPassword, signOut,
   doc, setDoc, collection, getDocs, serverTimestamp } from "./xfit-firebase.js";
+import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const $ = s => document.querySelector(s);
 const say = (n, t, k) => { n.textContent = t || ""; n.className = "msg " + (k || ""); };
 window.xfitSignIn = async (email, pass) => {
@@ -729,6 +746,98 @@ $("#mchips").onclick = e => {
   render();
 };
 document.querySelector('#nav [data-p="pMem"]').addEventListener("click", () => { if (auth.currentUser) load(); });
+
+/* ---------- الحجوزات (مين حاجز بكل حصة) ---------- */
+let bkData = null, phoneToUid = null;
+const last9 = s => String(s || "").replace(/\D/g, "").slice(-9);
+$("#bkDate").value = today();
+
+async function loadBk() {
+  const m = $("#bkMsg"); say(m, "...", "");
+  try {
+    const r = await api({ action: "adminBookings", date: $("#bkDate").value });
+    if (!r.ok) { say(m, "ما قدرت أحمّل الحجوزات، تأكدي من التاريخ", "err"); return; }
+    bkData = r; say(m, "");
+    const sel = $("#bkCoach"), keep = sel.value;
+    const coaches = [...new Set(r.classes.map(c => c.coach))];
+    sel.replaceChildren(...[["", "كل الكوتشات"]].concat(coaches.map(c => [c, c])).map(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; return o; }));
+    sel.value = coaches.indexOf(keep) >= 0 ? keep : "";
+    renderBk();
+  } catch (e) { say(m, "ما في اتصال، جرّبي مرة ثانية", "err"); }
+}
+
+function bkText(cl, r) {
+  const lines = [cl.cls + " " + cl.time + " (" + r.day + " " + r.date + ") - " + cl.coach, "العدد: " + cl.bookings.length + "/" + cl.max];
+  cl.bookings.forEach((b, i) => lines.push((i + 1) + ". " + b.name + " - " + b.phone));
+  return lines.join("\n");
+}
+function copyText(t, btn) {
+  const done = () => { const o = btn.textContent; btn.textContent = "تم النسخ ✓"; setTimeout(() => btn.textContent = o, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, () => prompt("انسخي:", t)); else prompt("انسخي:", t);
+}
+const bkFiltered = () => bkData ? bkData.classes.filter(c => !$("#bkCoach").value || c.coach === $("#bkCoach").value) : [];
+
+function renderBk() {
+  const box = $("#bkList"); box.replaceChildren();
+  const list = bkFiltered(), r = bkData;
+  const total = list.reduce((n, c) => n + c.bookings.length, 0);
+  $("#bkSum").textContent = r ? (r.day + " · " + list.length + " حصة · " + total + " حجز") : "";
+  if (!list.length) { const p = document.createElement("p"); p.className = "mute"; p.textContent = "ما في حصص بهالتاريخ"; box.appendChild(p); return; }
+  list.forEach(cl => {
+    const card = document.createElement("div"); card.className = "card";
+    const h = document.createElement("h2"); h.textContent = cl.cls + " · " + cl.time; card.appendChild(h);
+    const meta = document.createElement("div"); meta.className = "meta";
+    meta.append(tag("👩‍🏫 " + cl.coach), tag(cl.bookings.length + "/" + cl.max, cl.bookings.length >= cl.max ? "bad" : "x"));
+    if (cl.cancelled) meta.append(tag("ملغاة", "bad"));
+    card.appendChild(meta);
+    if (!cl.bookings.length) { const p = document.createElement("p"); p.className = "mute"; p.textContent = "ما في حجوزات"; card.appendChild(p); }
+    cl.bookings.forEach((b, i) => {
+      const row = document.createElement("div"); row.className = "crow";
+      const n = document.createElement("span"); n.textContent = (i + 1) + ". " + b.name; n.style.flex = "1"; n.style.fontSize = "15px"; n.style.color = "inherit"; n.style.whiteSpace = "normal";
+      const ph = document.createElement("span"); ph.dir = "ltr"; ph.className = "mute"; ph.textContent = b.phone;
+      const x = document.createElement("button"); x.type = "button"; x.className = "danger sm"; x.textContent = "إلغاء";
+      x.onclick = () => removeBk(cl, b, x);
+      row.append(n, ph, x); card.appendChild(row);
+    });
+    if (cl.bookings.length) {
+      const cp = document.createElement("button"); cp.type = "button"; cp.className = "ghost full"; cp.textContent = "نسخ قائمة هالحصة";
+      cp.onclick = () => copyText(bkText(cl, r), cp); card.appendChild(cp);
+    }
+    box.appendChild(card);
+  });
+}
+
+/* بيمسح نسخة الحجز من حساب المشتركة بـ Firestore (بنلاقيها من رقم الموبايل) */
+async function dropMirror(key, phone) {
+  try {
+    if (!phoneToUid) {
+      const us = await getDocs(collection(db, "users")); phoneToUid = {};
+      us.forEach(d => { const p = last9(d.data().phone); if (p) phoneToUid[p] = d.id; });
+    }
+    const uid = phoneToUid[last9(phone)];
+    if (uid) await deleteDoc(doc(db, "users", uid, "bookings", key.replace(/[\/|]/g, "_")));
+  } catch (e) {}
+}
+async function removeBk(cl, b, btn) {
+  if (!confirm("إلغاء حجز " + b.name + " من " + cl.cls + " " + cl.time + "؟")) return;
+  btn.disabled = true;
+  try {
+    const r = await api({ action: "adminRemoveBooking", key: cl.key, phone: b.phone });
+    if (!r.ok && r.error !== "notfound") { alert("ما انلغى الحجز، جرّبي مرة ثانية"); btn.disabled = false; return; }
+    await dropMirror(cl.key, b.phone);
+  } catch (e) { alert("ما في اتصال، جرّبي مرة ثانية"); btn.disabled = false; return; }
+  loadBk();
+}
+$("#bkDate").onchange = loadBk;
+$("#bkCoach").onchange = renderBk;
+$("#bkCopyAll").onclick = () => {
+  if (!bkData) return;
+  const t = bkFiltered().filter(c => c.bookings.length).map(c => bkText(c, bkData)).join("\n\n");
+  copyText(t || "ما في حجوزات", $("#bkCopyAll"));
+};
+document.querySelector('#nav [data-p="pBook"]').addEventListener("click", () => { if (auth.currentUser) loadBk(); });
+window.xfitLoadBk = loadBk;
+
 </script>
 </body>
 </html>

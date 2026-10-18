@@ -285,8 +285,8 @@ const T={
   enc:["كل شي جاهز! مستنيينك 💗","بكرا الحصة — جهّزي أواعيكِ 💪","قربنا! اشربي مي 💧","جهّزي حالك، إنتِ قدها! 🔥"],
   btn:"English",dateLoc:"ar-JO"}
 };
-Object.assign(T.en,{cancelBk:"Cancel booking",cancelAsk:"Cancel your booking for {c}?",cancelOk:"Your booking was cancelled",cancelFail:"Couldn't cancel, please try again"});
-Object.assign(T.ar,{cancelBk:"إلغاء الحجز",cancelAsk:"بدك تلغي حجزك بحصة {c}؟",cancelOk:"تم إلغاء حجزك",cancelFail:"ما قدرنا نلغي الحجز، جرّبي مرة ثانية"});
+Object.assign(T.en,{cancelBk:"Cancel booking",cancelAsk:"Cancel your booking for {c}?",cancelOk:"Your booking was cancelled",cancelFail:"Couldn't cancel, please try again",cancelLocked:"Cancellation closes {h} hours before class. Please contact the gym on WhatsApp."});
+Object.assign(T.ar,{cancelBk:"إلغاء الحجز",cancelAsk:"بدك تلغي حجزك بحصة {c}؟",cancelOk:"تم إلغاء حجزك",cancelFail:"ما قدرنا نلغي الحجز، جرّبي مرة ثانية",cancelLocked:"الإلغاء بيتسكّر قبل الحصة بـ {h} ساعات. تواصلي مع النادي على الواتساب."});
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 let L="en";
 try{const s=localStorage.getItem("xfit_lang");if(s==="ar"||s==="en")L=s}catch(e){}
@@ -418,6 +418,11 @@ function renderDays(){
 let MY=[];
 try{MY=JSON.parse(localStorage.getItem("xfit_my"))||[]}catch(e){MY=[]}
 const startOf=b=>new Date(b.date+"T"+b.time+":00");
+/* قفل الإلغاء: قبل موعد الحصة بهالعدد من الساعات ما بتقدر المشتركة تلغي (لازم يكون نفس CANCEL_LOCK_HOURS بالـ Apps Script) */
+const CANCEL_LOCK_H=3;
+const cancelLocked=b=>startOf(b)-new Date()<CANCEL_LOCK_H*3600e3;
+const lockedKey=k=>{const b=MY.find(x=>x.key===k);return b?cancelLocked(b):false};
+const lockMsg=()=>t("cancelLocked").replace("{h}",CANCEL_LOCK_H);
 function pruneMy(){MY=MY.filter(b=>b&&b.date&&b.time&&startOf(b)>new Date(Date.now()-3600e3))}
 function saveMy(){try{localStorage.setItem("xfit_my",JSON.stringify(MY))}catch(e){}}
 function addMy(list){
@@ -458,7 +463,7 @@ function renderNext(){
   const when=startOf(up).toLocaleDateString(t("dateLoc"),{weekday:"long",day:"numeric",month:"long"});
   box.className="nxt on";
   box.innerHTML=`<div class="k">${t("nxtK")}</div><div class="n">${up.cls}</div><div class="w"><bdi>📆 ${when}</bdi> &nbsp;•&nbsp; <bdi>🕒 ${up.time}</bdi></div>
-  <div class="cd">⏳ ${t("nxtIn")} ${fmtLeft(ms)}</div><div class="e">${msg}</div>${pushLine()}<div><button class="btn alt" data-cancel="${up.key}" style="margin-top:10px">${t("cancelBk")}</button></div>`;
+  <div class="cd">⏳ ${t("nxtIn")} ${fmtLeft(ms)}</div><div class="e">${msg}</div>${pushLine()}<div>${cancelLocked(up)?`<div class="w" style="margin-top:10px">🔒 ${lockMsg()}</div>`:`<button class="btn alt" data-cancel="${up.key}" style="margin-top:10px">${t("cancelBk")}</button>`}</div>`;
 }
 setInterval(()=>{pruneMy();renderNext()},30000);
 function renderClasses(){
@@ -473,7 +478,7 @@ function renderClasses(){
     <button class="btn off" disabled>${t("cancelledBtn")}</button></div>`;
     return `<div class="cls"><div class="top"><span class="name">${n}</span><span class="badge">${left?t("left").replace("{n}",left):t("fullB")}</span></div>
     <div class="meta"><bdi>🕒 ${tm}</bdi> &nbsp;•&nbsp; <bdi>👩‍🏫 ${co}</bdi> &nbsp;•&nbsp; <bdi>⏱ ${dur(m)}</bdi><br><bdi>📆 ${when}</bdi></div>
-    ${isBooked(k)?`<button class="btn booked" disabled>${t("booked")}</button> <button class="btn alt" data-cancel="${k}">${t("cancelBk")}</button>`:`<button class="btn ${left?"":"full"}" data-book="${i}">${left?t("book"):t("classFull")}</button>`}</div>`}).join("");
+    ${isBooked(k)?`<button class="btn booked" disabled>${t("booked")}</button> ${lockedKey(k)?`<div class="meta" style="margin-top:8px">🔒 ${lockMsg()}</div>`:`<button class="btn alt" data-cancel="${k}">${t("cancelBk")}</button>`}`:`<button class="btn ${left?"":"full"}" data-book="${i}">${left?t("book"):t("classFull")}</button>`}</div>`}).join("");
 }
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-d]");if(b){cur=b.dataset.d;renderDays();renderClasses()}
@@ -498,6 +503,7 @@ function fillWho(){
 /* إلغاء الحجز */
 async function cancelBooking(key){
   const b=MY.find(x=>x.key===key);if(!b)return;
+  if(cancelLocked(b)){alert(lockMsg());return}
   if(!confirm(t("cancelAsk").replace("{c}",b.cls+" "+b.time)))return;
   const p=window.xfitProfile;let phone=p&&normPhone(p.phone||"");
   if(!phone){phone=normPhone(prompt(t("phPhone"))||"");if(!phone)return}
@@ -509,7 +515,7 @@ async function cancelBooking(key){
       if(r.ok)notify("إلغاء حجز - "+b.cls,{"الحصة":b.cls,"اليوم":(b.day||"")+" "+b.time,"الاسم":(p&&p.name)||"","الرقم":phone});
       loadCounts();renderNext();renderClasses();
       alert(t("cancelOk"));
-    }else alert(t("cancelFail"));
+    }else alert(r.error==="locked"?lockMsg():t("cancelFail"));
   }catch(e){alert(t("cancelFail"))}
 }
 $("#mClose").onclick=()=>$("#modal").classList.remove("on");
