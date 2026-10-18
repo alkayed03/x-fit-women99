@@ -66,7 +66,7 @@ button.ghost{background:transparent;color:var(--pink);border:1px solid var(--pin
 
 <script type="module">
 import { auth, db, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-  sendPasswordResetEmail, doc, getDoc, setDoc, updateDoc, collection, getDocs, serverTimestamp } from "./xfit-firebase.js";
+  sendPasswordResetEmail, doc, getDoc, setDoc, updateDoc, collection, getDocs, serverTimestamp, liveBookings } from "./xfit-firebase.js";
 const $ = s => document.querySelector(s);
 const ERR = {
   "auth/email-already-in-use": "هالإيميل مسجل من قبل، جرّبي تسجلي دخول",
@@ -136,7 +136,7 @@ async function load(u) {
   show("#cSched", "#sched", m.type === "private" && m.schedule);
   show("#cNut", "#nut", m.type === "private" && m.nutrition);
   show("#cNote", "#note", m.note);
-  const t = today(), list = bk.docs.map(d => d.data()).sort((a, b) => a.date < b.date ? 1 : -1);
+  const t = today(), live = await liveBookings(u, bk.docs), list = live.map(d => d.data()).filter(x => !x.cancelled).sort((a, b) => a.date < b.date ? 1 : -1);
   const box = $("#bks"); box.replaceChildren();
   if (!list.length) { box.textContent = "ما في حجوزات بعد"; return; }
   list.forEach(b => { const r = document.createElement("div"); r.className = "bk";

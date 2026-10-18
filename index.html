@@ -659,7 +659,7 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
 </script>
 <script type="module">
 /* ربط الحجز بحساب المشتركة (إذا كانت مسجلة دخول). إذا فشل أي شي، الحجز العادي ما بتأثر */
-import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from "./xfit-firebase.js";
+import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, collection, getDocs, serverTimestamp, liveBookings } from "./xfit-firebase.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const VAPID = "BEzY1cgRGxtpFcishvpIP_BPpDOmCe3E1_6bC-RwmA5qLpZ6js6QX0mtn2gNialh09hUNN7VYgA7kR-45NaiVBk";
 let user = null;
@@ -708,7 +708,7 @@ onAuthStateChanged(auth, async u => {
   user = u; myMem = null; renderPrivate();
   try { const pr = await getDoc(doc(db, "users", u.uid)); window.xfitProfile = pr.exists() ? { name: pr.data().name || "", phone: pr.data().phone || "" } : null; } catch (e) {}
   try { const s = await getDoc(doc(db, "memberships", u.uid)); myMem = s.exists() ? s.data() : null; renderPrivate(); } catch (e) {}
-  try { const q = await getDocs(collection(db, "users", u.uid, "bookings")); if (window.xfitSyncMy) window.xfitSyncMy(q.docs.filter(d => !d.data().cancelled).map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; })); await syncPush(); } catch (e) {}
+  try { const q = await getDocs(collection(db, "users", u.uid, "bookings")); const live = await liveBookings(u, q.docs); if (window.xfitSyncMy) window.xfitSyncMy(live.filter(d => !d.data().cancelled).map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; })); await syncPush(); } catch (e) {}
 });
 
 /* ----- تبويب الكوتش: بيظهر بس إذا الحساب إيميل كوتش (السيرفر هو اللي بقرر) ----- */
@@ -829,8 +829,8 @@ document.addEventListener("visibilitychange", async () => {
   if (document.visibilityState !== "visible" || !user || Date.now() - lastMine < 30000) return;
   lastMine = Date.now();
   try {
-    const q = await getDocs(collection(db, "users", user.uid, "bookings"));
-    if (window.xfitSyncMy) window.xfitSyncMy(q.docs.filter(d => !d.data().cancelled).map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; }));
+    const q = await getDocs(collection(db, "users", user.uid, "bookings")), live = await liveBookings(user, q.docs);
+    if (window.xfitSyncMy) window.xfitSyncMy(live.filter(d => !d.data().cancelled).map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; }));
     await syncPush();
   } catch (e) {}
 });
