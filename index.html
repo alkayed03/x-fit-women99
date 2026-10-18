@@ -256,7 +256,7 @@ const T={
   rvSending:"Sending...",rvThanks:"Thank you!",rvThanks2:"Your feedback helps us improve 💗",rvAnother:"Rate another coach",
   tagsGood:["Professional 💪","On time ⏰","Motivating 🔥","Clear instructions 🎯","Fun vibe 🎉","Positive energy ✨"],
   tagsBad:["Late ⏰","Unclear instructions","Low interaction","Class too crowded","Workout too hard"],
-  nxtK:"YOUR NEXT CLASS 🎯",nxtIn:"Starts in",dU:"d",hU:"h",mU:"min",nxtNow:"Starting now!",booked:"You're booked ✓",
+  nxtK:"YOUR NEXT CLASS 🎯",pOff:"🔔 Remind me before class",pOn:"🔔 Reminder is on — we'll notify you before class",pIos:"📲 To get reminders: tap Share → Add to Home Screen, then open the app from your Home Screen",pDen:"🔕 Notifications are blocked. Turn them on for this app in your phone settings",nxtIn:"Starts in",dU:"d",hU:"h",mU:"min",nxtNow:"Starting now!",booked:"You're booked ✓",
   enc:["You're all set! We can't wait to see you 💗","Tomorrow's the day — get your outfit ready 💪","Almost time! Drink some water 💧","Get ready, you've got this! 🔥"],
   btn:"العربية",dateLoc:"en-GB"},
  ar:{heroKick:"يلا نبدأ 🔥",heroTitle:"قوتك بتبدأ من هون",heroCta:"احجزي حصتك",today:"اليوم بالنادي",noToday:"ما في حصص اليوم — ارتاحي، بتستاهلي 💗",rateSub:"قولي لنا رأيك",chTitle:"تحدّي اليوم",chDone:"تم ✓",chDoneBtn:"خلّصتها 💪",
@@ -279,7 +279,7 @@ const T={
   rvSending:"جاري الإرسال...",rvThanks:"شكراً لتقييمك!",rvThanks2:"رأيك بيساعدنا نتطور 💗",rvAnother:"قيّمي كوتش ثانية",
   tagsGood:["محترفة 💪","ملتزمة بالوقت ⏰","تشجّع وتحفّز 🔥","شرحها واضح 🎯","جو ممتع 🎉","طاقة إيجابية ✨"],
   tagsBad:["تأخير ⏰","الشرح مش واضح","قليلة التفاعل","الحصة مزدحمة","التمارين صعبة"],
-  nxtK:"حصتك الجاية 🎯",nxtIn:"بتبلش بعد",dU:"يوم",hU:"ساعة",mU:"دقيقة",nxtNow:"الحصة بلشت هلأ!",booked:"حاجزة ✓",
+  nxtK:"حصتك الجاية 🎯",pOff:"🔔 ذكّريني قبل الحصة",pOn:"🔔 التذكير شغّال — رح نبعتلك إشعار قبل الحصة",pIos:"📲 عشان توصلك التذكيرات: اضغطي Share ثم Add to Home Screen، وافتحي التطبيق من الشاشة الرئيسية",pDen:"🔕 الإشعارات مسكّرة. فعّليها لهالتطبيق من إعدادات الموبايل",nxtIn:"بتبلش بعد",dU:"يوم",hU:"ساعة",mU:"دقيقة",nxtNow:"الحصة بلشت هلأ!",booked:"حاجزة ✓",
   enc:["كل شي جاهز! مستنيينك 💗","بكرا الحصة — جهّزي أواعيكِ 💪","قربنا! اشربي مي 💧","جهّزي حالك، إنتِ قدها! 🔥"],
   btn:"English",dateLoc:"ar-JO"}
 };
@@ -417,7 +417,7 @@ const startOf=b=>new Date(b.date+"T"+b.time+":00");
 function pruneMy(){MY=MY.filter(b=>b&&b.date&&b.time&&startOf(b)>new Date(Date.now()-3600e3))}
 function saveMy(){try{localStorage.setItem("xfit_my",JSON.stringify(MY))}catch(e){}}
 function addMy(list){
-  (Array.isArray(list)?list:[list]).forEach(b=>{if(b&&b.key&&!MY.some(x=>x.key===b.key))MY.push({key:b.key,cls:b.cls,day:b.day,time:b.time,date:b.date||String(b.key).split("|")[0]})});
+  (Array.isArray(list)?list:[list]).forEach(b=>{if(b&&b.key&&!MY.some(x=>x.key===b.key))MY.push({key:b.key,cls:b.cls,day:b.day,time:b.time,date:b.date||String(b.key).split("|")[0],at:b.at||null})});
   pruneMy();saveMy();renderNext();renderClasses();
 }
 window.xfitAddMy=addMy;
@@ -429,6 +429,23 @@ function fmtLeft(ms){
   if(!d)p.push(mi+" "+t("mU"));
   return p.join(" ");
 }
+/* ----- تذكير بالإشعارات ----- */
+function pushState(){
+  if(!("Notification" in window)||!("serviceWorker" in navigator)||!("PushManager" in window)){
+    const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+    const app=navigator.standalone||(matchMedia&&matchMedia("(display-mode: standalone)").matches);
+    return ios&&!app?"ios":"none";
+  }
+  const p=Notification.permission;return p==="granted"?"on":p==="denied"?"denied":"off";
+}
+function pushLine(){
+  const s=pushState();
+  if(s==="none")return "";
+  if(s==="off")return `<button class="btn" id="pushBtn" type="button">${t("pOff")}</button>`;
+  return `<div class="w" style="margin-top:8px">${t({on:"pOn",ios:"pIos",denied:"pDen"}[s])}</div>`;
+}
+document.addEventListener("click",e=>{if(e.target.closest("#pushBtn")&&window.xfitEnablePush)window.xfitEnablePush()});
+window.xfitMy=()=>MY;window.xfitLang=()=>L;window.xfitRenderNext=()=>renderNext();
 function renderNext(){
   const box=$("#nxt");if(!box)return;
   const now=new Date(),up=MY.filter(b=>startOf(b)>now).sort((a,b)=>startOf(a)-startOf(b))[0];
@@ -437,7 +454,7 @@ function renderNext(){
   const when=startOf(up).toLocaleDateString(t("dateLoc"),{weekday:"long",day:"numeric",month:"long"});
   box.className="nxt on";
   box.innerHTML=`<div class="k">${t("nxtK")}</div><div class="n">${up.cls}</div><div class="w"><bdi>📆 ${when}</bdi> &nbsp;•&nbsp; <bdi>🕒 ${up.time}</bdi></div>
-  <div class="cd">⏳ ${t("nxtIn")} ${fmtLeft(ms)}</div><div class="e">${msg}</div>`;
+  <div class="cd">⏳ ${t("nxtIn")} ${fmtLeft(ms)}</div><div class="e">${msg}</div>${pushLine()}`;
 }
 setInterval(()=>{pruneMy();renderNext()},30000);
 function renderClasses(){
@@ -471,7 +488,7 @@ $("#mSend").onclick=async()=>{
   m.style.color="var(--mute)";m.textContent=t("booking");$("#mSend").disabled=true;
   try{
     const r=await api({action:"book",key:pending.key,cls:pending.c[0],day:pending.day,time:pending.c[1],name,phone,spots:SPOTS});
-    if(r.ok){try{addMy({key:pending.key,cls:pending.c[0],day:pending.day,time:pending.c[1]})}catch(e){}try{window.xfitOnBooked&&window.xfitOnBooked({key:pending.key,cls:pending.c[0],day:pending.day,time:pending.c[1]})}catch(e){}m.style.color="#1a9d4a";m.textContent=t("ok");$("#mSend").style.display="none";loadCounts();
+    if(r.ok){try{addMy({key:pending.key,cls:pending.c[0],day:pending.day,time:pending.c[1],at:new Date().toISOString()})}catch(e){}try{window.xfitOnBooked&&window.xfitOnBooked({key:pending.key,cls:pending.c[0],day:pending.day,time:pending.c[1]})}catch(e){}m.style.color="#1a9d4a";m.textContent=t("ok");$("#mSend").style.display="none";loadCounts();
       notify("حجز جديد - "+pending.c[0],{"الحصة":pending.c[0],"اليوم":pending.day+" "+pending.c[1],"الاسم":name,"الرقم":phone})}
     else{m.style.color="#d33";m.textContent=serverErr(r.error)}
   }catch(e){m.style.color="#d33";m.textContent=t("noConn")}
@@ -584,8 +601,29 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
 <script type="module">
 /* ربط الحجز بحساب المشتركة (إذا كانت مسجلة دخول). إذا فشل أي شي، الحجز العادي ما بتأثر */
 import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from "./xfit-firebase.js";
+const VAPID = "BAgccey0B95wjcQYuBVnsAqADYDvT-BiTvrev-bpW1k61WHtqutfoZporuC9r3opCGR5x6DulNbIdgfbkzosFwk";
 let user = null;
 let myMem = null;
+const b64 = k => { const p = "=".repeat((4 - k.length % 4) % 4), r = atob((k + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(r, c => c.charCodeAt(0)); };
+/* بنحفظ اشتراك الإشعارات + حجوزاتها القادمة على حساب المشتركة، والسيرفر بيبعت التذكير */
+async function syncPush() {
+  if (!user || !("Notification" in window) || Notification.permission !== "granted") return;
+  const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription();
+  if (!sub) return;
+  const up = (window.xfitMy ? window.xfitMy() : []).map(b => ({ key: b.key, cls: b.cls, time: b.time, start: b.date + "T" + b.time + ":00+03:00", at: b.at || null }));
+  await setDoc(doc(db, "users", user.uid), { push: JSON.parse(JSON.stringify(sub)), lang: window.xfitLang(), up }, { merge: true });
+}
+window.xfitEnablePush = async () => {
+  try {
+    if (await Notification.requestPermission() === "granted") {
+      const reg = await navigator.serviceWorker.ready;
+      if (!(await reg.pushManager.getSubscription()))
+        await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(VAPID) });
+      await syncPush();
+    }
+  } catch (e) {}
+  if (window.xfitRenderNext) window.xfitRenderNext();
+};
 function mkCard(title, text) {
   const c = document.createElement("div"); c.className = "cls priv";
   const h = document.createElement("div"); h.className = "meta"; h.style.fontWeight = "800"; h.textContent = title;
@@ -608,7 +646,7 @@ onAuthStateChanged(auth, async u => {
   document.documentElement.classList.remove("gate");
   user = u; myMem = null; renderPrivate();
   try { const s = await getDoc(doc(db, "memberships", u.uid)); myMem = s.exists() ? s.data() : null; renderPrivate(); } catch (e) {}
-  try { const q = await getDocs(collection(db, "users", u.uid, "bookings")); if (window.xfitAddMy) window.xfitAddMy(q.docs.map(d => d.data())); } catch (e) {}
+  try { const q = await getDocs(collection(db, "users", u.uid, "bookings")); if (window.xfitAddMy) window.xfitAddMy(q.docs.map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; })); await syncPush(); } catch (e) {}
 });
 window.xfitOnBooked = async b => {
   if (!user) return;
@@ -616,6 +654,7 @@ window.xfitOnBooked = async b => {
     await setDoc(doc(db, "users", user.uid, "bookings", b.key.replace(/[\/|]/g, "_")),
       { key: b.key, cls: b.cls, day: b.day, time: b.time, date: b.key.split("|")[0], createdAt: serverTimestamp() });
   } catch (e) {}
+  try { await syncPush(); } catch (e) {}
 };
 </script>
 </body>
