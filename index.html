@@ -754,7 +754,14 @@ async function checkCoach(u) {
   document.querySelector("#navCoach").style.display = "none";
   try {
     const key = "xfit_coach_" + u.uid; let c = sessionStorage.getItem(key);
-    if (c === null) { const r = await coApi("coachWho"); c = r && r.ok ? r.coach : ""; sessionStorage.setItem(key, c); }
+    if (c === null) {
+      /* نحاول مرتين، ونخزّن النتيجة بس إذا السيرفر ردّ ردّ واضح (كوتش أو مش كوتش) - الأخطاء المؤقتة ما بتتخزّن */
+      let r = null;
+      for (let i = 0; i < 2 && !r; i++) { try { r = await coApi("coachWho"); } catch (e) { r = null; } if (!r && i === 0) await new Promise(f => setTimeout(f, 1200)); }
+      if (r && r.ok) { c = r.coach || ""; sessionStorage.setItem(key, c); }
+      else if (r && r.error === "denied") { c = ""; sessionStorage.setItem(key, c); }
+      else c = "";
+    }
     if (!c) return;
     document.querySelector("#coName").textContent = "أهلاً " + c + " 👋 هاي حصصك والمتدربات";
     document.querySelector("#navCoach").style.display = "";
