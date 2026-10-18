@@ -442,6 +442,15 @@ function addMy(list){
   pruneMy();saveMy();renderNext();renderClasses();
 }
 window.xfitAddMy=addMy;
+/* بيطابق حجوزات الجهاز مع اللي بـ Firestore (المرجع): أي حجز انمسح من الأدمن بيروح كمان من هون.
+   بنخلّي الحجوزات اللي انعملت من أقل من 3 دقايق (ممكن لسا ما انكتبت بـ Firestore) */
+function syncMy(list){
+  list=Array.isArray(list)?list:[];
+  const keys=new Set(list.map(b=>b&&b.key).filter(Boolean));
+  const fresh=MY.filter(b=>b&&!keys.has(b.key)&&b.at&&Date.now()-new Date(b.at).getTime()<180000);
+  MY=[];addMy(list.concat(fresh));
+}
+window.xfitSyncMy=syncMy;
 const isBooked=k=>MY.some(b=>b.key===k);
 function fmtLeft(ms){
   const m=Math.max(0,Math.floor(ms/60000)),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mi=m%60,p=[];
@@ -699,7 +708,7 @@ onAuthStateChanged(auth, async u => {
   user = u; myMem = null; renderPrivate();
   try { const pr = await getDoc(doc(db, "users", u.uid)); window.xfitProfile = pr.exists() ? { name: pr.data().name || "", phone: pr.data().phone || "" } : null; } catch (e) {}
   try { const s = await getDoc(doc(db, "memberships", u.uid)); myMem = s.exists() ? s.data() : null; renderPrivate(); } catch (e) {}
-  try { const q = await getDocs(collection(db, "users", u.uid, "bookings")); if (window.xfitAddMy) window.xfitAddMy(q.docs.filter(d => !d.data().cancelled).map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; })); await syncPush(); } catch (e) {}
+  try { const q = await getDocs(collection(db, "users", u.uid, "bookings")); if (window.xfitSyncMy) window.xfitSyncMy(q.docs.filter(d => !d.data().cancelled).map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; })); await syncPush(); } catch (e) {}
 });
 
 /* ----- تبويب الكوتش: بيظهر بس إذا الحساب إيميل كوتش (السيرفر هو اللي بقرر) ----- */
@@ -815,6 +824,16 @@ async function checkOwner(u) {
     if (!sessionStorage.getItem("xfit_ad_open")) { sessionStorage.setItem("xfit_ad_open", "1"); go("adm"); }
   } catch (e) {}
 }
+let lastMine = 0;
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState !== "visible" || !user || Date.now() - lastMine < 30000) return;
+  lastMine = Date.now();
+  try {
+    const q = await getDocs(collection(db, "users", user.uid, "bookings"));
+    if (window.xfitSyncMy) window.xfitSyncMy(q.docs.filter(d => !d.data().cancelled).map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; }));
+    await syncPush();
+  } catch (e) {}
+});
 window.xfitOnCancelled = async key => {
   if (!user) return;
   const ref = doc(db, "users", user.uid, "bookings", key.replace(/[\/|]/g, "_"));

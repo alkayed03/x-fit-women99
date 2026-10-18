@@ -642,7 +642,7 @@ function renderList() {
 </script>
 <script type="module">
 import { auth, db, onAuthStateChanged, signInWithEmailAndPassword, signOut,
-  doc, setDoc, collection, getDocs, serverTimestamp } from "./xfit-firebase.js";
+  doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from "./xfit-firebase.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const $ = s => document.querySelector(s);
 const say = (n, t, k) => { n.textContent = t || ""; n.className = "msg " + (k || ""); };
@@ -819,7 +819,14 @@ async function dropMirror(key, phone) {
       us.forEach(d => { const p = last9(d.data().phone); if (p) phoneToUid[p] = d.id; });
     }
     const uid = phoneToUid[last9(phone)];
-    if (uid) await deleteDoc(doc(db, "users", uid, "bookings", key.replace(/[\/|]/g, "_")));
+    if (uid) {
+      await deleteDoc(doc(db, "users", uid, "bookings", key.replace(/[\/|]/g, "_")));
+      /* كمان بنشيله من قائمة التذكيرات عشان ما توصلها إشعار عن حصة انلغت */
+      try {
+        const ud = await getDoc(doc(db, "users", uid)), up = (ud.data() || {}).up;
+        if (Array.isArray(up)) await setDoc(doc(db, "users", uid), { up: up.filter(x => x && x.key !== key) }, { merge: true });
+      } catch (e) {}
+    }
   } catch (e) {}
 }
 async function removeBk(cl, b, btn) {
