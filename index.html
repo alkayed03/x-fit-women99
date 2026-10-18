@@ -601,7 +601,7 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
 <script type="module">
 /* ربط الحجز بحساب المشتركة (إذا كانت مسجلة دخول). إذا فشل أي شي، الحجز العادي ما بتأثر */
 import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from "./xfit-firebase.js";
-const VAPID = "BAgccey0B95wjcQYuBVnsAqADYDvT-BiTvrev-bpW1k61WHtqutfoZporuC9r3opCGR5x6DulNbIdgfbkzosFwk";
+const VAPID = "BEzY1cgRGxtpFcishvpIP_BPpDOmCe3E1_6bC-RwmA5qLpZ6js6QX0mtn2gNialh09hUNN7VYgA7kR-45NaiVBk";
 let user = null;
 let myMem = null;
 const b64 = k => { const p = "=".repeat((4 - k.length % 4) % 4), r = atob((k + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(r, c => c.charCodeAt(0)); };
