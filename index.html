@@ -117,6 +117,7 @@ nav button.on{color:var(--pink);font-weight:700}
 .nxt .e{font-size:14px;font-weight:700}
 .btn.booked{background:transparent;color:var(--pink);border:1px solid var(--pink);cursor:default}
 html.gate body{display:none}
+.who{margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--pink-l);font-weight:700;line-height:1.8}
 </style>
 <script>document.documentElement.classList.add("gate")</script>
 </head>
@@ -188,6 +189,7 @@ html.gate body{display:none}
 
 <div class="modal" id="modal"><div class="sheet">
   <h3 id="mTitle"></h3><div id="mSub" style="color:var(--mute);font-size:13px"></div>
+  <div id="mWho" class="who" style="display:none"></div>
   <input id="mName" data-ph="phName" autocomplete="name">
   <input id="mPhone" data-ph="phPhone" inputmode="tel" autocomplete="tel">
   <div class="msg" id="mMsg"></div>
@@ -283,6 +285,8 @@ const T={
   enc:["كل شي جاهز! مستنيينك 💗","بكرا الحصة — جهّزي أواعيكِ 💪","قربنا! اشربي مي 💧","جهّزي حالك، إنتِ قدها! 🔥"],
   btn:"English",dateLoc:"ar-JO"}
 };
+Object.assign(T.en,{cancelBk:"Cancel booking",cancelAsk:"Cancel your booking for {c}?",cancelOk:"Your booking was cancelled",cancelFail:"Couldn't cancel, please try again"});
+Object.assign(T.ar,{cancelBk:"إلغاء الحجز",cancelAsk:"بدك تلغي حجزك بحصة {c}؟",cancelOk:"تم إلغاء حجزك",cancelFail:"ما قدرنا نلغي الحجز، جرّبي مرة ثانية"});
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 let L="en";
 try{const s=localStorage.getItem("xfit_lang");if(s==="ar"||s==="en")L=s}catch(e){}
@@ -323,7 +327,7 @@ function applyStatic(){
 function setLang(l){
   L=l;try{localStorage.setItem("xfit_lang",l)}catch(e){}
   applyStatic();renderDays();renderClasses();renderPlan();rvAvatars();rvPanel();renderHome();
-  if($("#modal").classList.contains("on")&&pending){$("#mSub").textContent=subText();$("#mMsg").textContent=""}
+  if($("#modal").classList.contains("on")&&pending){$("#mSub").textContent=subText();$("#mMsg").textContent="";fillWho()}
 }
 function subText(){
   const d=nextDate(pending.day,pending.c[1]).toLocaleDateString(t("dateLoc"),{weekday:"long",day:"numeric",month:"long"});
@@ -454,7 +458,7 @@ function renderNext(){
   const when=startOf(up).toLocaleDateString(t("dateLoc"),{weekday:"long",day:"numeric",month:"long"});
   box.className="nxt on";
   box.innerHTML=`<div class="k">${t("nxtK")}</div><div class="n">${up.cls}</div><div class="w"><bdi>📆 ${when}</bdi> &nbsp;•&nbsp; <bdi>🕒 ${up.time}</bdi></div>
-  <div class="cd">⏳ ${t("nxtIn")} ${fmtLeft(ms)}</div><div class="e">${msg}</div>${pushLine()}`;
+  <div class="cd">⏳ ${t("nxtIn")} ${fmtLeft(ms)}</div><div class="e">${msg}</div>${pushLine()}<div><button class="btn alt" data-cancel="${up.key}" style="margin-top:10px">${t("cancelBk")}</button></div>`;
 }
 setInterval(()=>{pruneMy();renderNext()},30000);
 function renderClasses(){
@@ -469,17 +473,45 @@ function renderClasses(){
     <button class="btn off" disabled>${t("cancelledBtn")}</button></div>`;
     return `<div class="cls"><div class="top"><span class="name">${n}</span><span class="badge">${left?t("left").replace("{n}",left):t("fullB")}</span></div>
     <div class="meta"><bdi>🕒 ${tm}</bdi> &nbsp;•&nbsp; <bdi>👩‍🏫 ${co}</bdi> &nbsp;•&nbsp; <bdi>⏱ ${dur(m)}</bdi><br><bdi>📆 ${when}</bdi></div>
-    ${isBooked(k)?`<button class="btn booked" disabled>${t("booked")}</button>`:`<button class="btn ${left?"":"full"}" data-book="${i}">${left?t("book"):t("classFull")}</button>`}</div>`}).join("");
+    ${isBooked(k)?`<button class="btn booked" disabled>${t("booked")}</button> <button class="btn alt" data-cancel="${k}">${t("cancelBk")}</button>`:`<button class="btn ${left?"":"full"}" data-book="${i}">${left?t("book"):t("classFull")}</button>`}</div>`}).join("");
 }
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-d]");if(b){cur=b.dataset.d;renderDays();renderClasses()}
+  const cb=e.target.closest("[data-cancel]");if(cb)cancelBooking(cb.dataset.cancel);
   const k=e.target.closest("[data-book]");
   if(k){const c=SCHEDULE[cur][+k.dataset.book];pending={c,key:keyOf(cur,c),day:cur};
-    $("#mTitle").textContent=c[0];$("#mSub").textContent=subText();$("#mMsg").textContent="";
+    $("#mTitle").textContent=c[0];$("#mSub").textContent=subText();$("#mMsg").textContent="";fillWho();
     $("#mSend").style.display="";$("#mSend").disabled=false;
     try{history.pushState({v:$(".view.on").id},"")}catch(x){}
     $("#modal").classList.add("on")}
 });
+/* الحجز التلقائي من حساب المشتركة */
+function fillWho(){
+  const p=window.xfitProfile,ph=p&&normPhone(p.phone||""),nm=p?String(p.name||"").trim():"",ok=!!(ph&&nm.length>=2),w=$("#mWho");
+  if(ok){
+    $("#mName").value=nm;$("#mPhone").value=ph;
+    $("#mName").style.display="none";$("#mPhone").style.display="none";
+    const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    w.innerHTML=`${L==="ar"?"الحجز باسم":"Booking as"}: <b>${esc(nm)}</b><br><bdi>📱 ${ph}</bdi>`;w.style.display="";
+  }else{$("#mName").style.display="";$("#mPhone").style.display="";w.style.display="none"}
+}
+/* إلغاء الحجز */
+async function cancelBooking(key){
+  const b=MY.find(x=>x.key===key);if(!b)return;
+  if(!confirm(t("cancelAsk").replace("{c}",b.cls+" "+b.time)))return;
+  const p=window.xfitProfile;let phone=p&&normPhone(p.phone||"");
+  if(!phone){phone=normPhone(prompt(t("phPhone"))||"");if(!phone)return}
+  try{
+    const r=await api({action:"cancel",key,phone});
+    if(r.ok||r.error==="notfound"){
+      MY=MY.filter(x=>x.key!==key);saveMy();
+      try{window.xfitOnCancelled&&window.xfitOnCancelled(key)}catch(e){}
+      if(r.ok)notify("إلغاء حجز - "+b.cls,{"الحصة":b.cls,"اليوم":(b.day||"")+" "+b.time,"الاسم":(p&&p.name)||"","الرقم":phone});
+      loadCounts();renderNext();renderClasses();
+      alert(t("cancelOk"));
+    }else alert(t("cancelFail"));
+  }catch(e){alert(t("cancelFail"))}
+}
 $("#mClose").onclick=()=>$("#modal").classList.remove("on");
 $("#mSend").onclick=async()=>{
   if($("#mSend").disabled)return;
@@ -601,6 +633,7 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
 <script type="module">
 /* ربط الحجز بحساب المشتركة (إذا كانت مسجلة دخول). إذا فشل أي شي، الحجز العادي ما بتأثر */
 import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from "./xfit-firebase.js";
+import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const VAPID = "BEzY1cgRGxtpFcishvpIP_BPpDOmCe3E1_6bC-RwmA5qLpZ6js6QX0mtn2gNialh09hUNN7VYgA7kR-45NaiVBk";
 let user = null;
 let myMem = null;
@@ -645,9 +678,16 @@ onAuthStateChanged(auth, async u => {
   if (!u) { location.replace("account.html"); return; }
   document.documentElement.classList.remove("gate");
   user = u; myMem = null; renderPrivate();
+  try { const pr = await getDoc(doc(db, "users", u.uid)); window.xfitProfile = pr.exists() ? { name: pr.data().name || "", phone: pr.data().phone || "" } : null; } catch (e) {}
   try { const s = await getDoc(doc(db, "memberships", u.uid)); myMem = s.exists() ? s.data() : null; renderPrivate(); } catch (e) {}
-  try { const q = await getDocs(collection(db, "users", u.uid, "bookings")); if (window.xfitAddMy) window.xfitAddMy(q.docs.map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; })); await syncPush(); } catch (e) {}
+  try { const q = await getDocs(collection(db, "users", u.uid, "bookings")); if (window.xfitAddMy) window.xfitAddMy(q.docs.filter(d => !d.data().cancelled).map(d => { const x = d.data(); return { ...x, at: x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null }; })); await syncPush(); } catch (e) {}
 });
+window.xfitOnCancelled = async key => {
+  if (!user) return;
+  const ref = doc(db, "users", user.uid, "bookings", key.replace(/[\/|]/g, "_"));
+  try { await deleteDoc(ref); } catch (e) { try { await setDoc(ref, { cancelled: true }, { merge: true }); } catch (e2) {} }
+  try { await syncPush(); } catch (e) {}
+};
 window.xfitOnBooked = async b => {
   if (!user) return;
   try {
